@@ -100,6 +100,18 @@ sub export {
     return map {$_ => $self->$_() } qw(username passwprd host port dbname)
 }
 
+=head2 connect
+
+Connects to the db using DBI and returns a db connection
+
+=cut
+
+sub connect {
+    my $self = shift;
+    return DBI->connect('dbi:Pg:dbname=' . $self->dbname, 
+                           $self->username, $self->password);
+}
+
 =head2 list_dbs
 
 Returns a list of db names.
@@ -108,11 +120,11 @@ Returns a list of db names.
 
 sub list_dbs {
     my $self = shift;
-    my $dbh = DBI->connect('dbi:Pg:dbname=' . $self->dbname, 
-                           $self->username, $self->password);
-    return $dbh->fetchall_array(
+
+    return __PACKAGE__->new($self->export, (dbname => 'template1')
+           )->connect->fetchall_array(
                  'SELECT datname from pg_database order by datname'
-    );
+           );
 }
 
 =head2 create
