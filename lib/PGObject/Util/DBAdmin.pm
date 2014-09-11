@@ -97,7 +97,7 @@ pbject.
 
 sub export {
     my $self = shift;
-    return map {$_ => $self->$_() } qw(username passwprd host port dbname)
+    return map {$_ => $self->$_() } qw(username password host port dbname)
 }
 
 =head2 connect
@@ -121,10 +121,11 @@ Returns a list of db names.
 sub list_dbs {
     my $self = shift;
 
-    return __PACKAGE__->new($self->export, (dbname => 'template1')
-           )->connect->fetchall_array(
+    return map { $_->[0] } 
+           @{ __PACKAGE__->new($self->export, (dbname => 'template1')
+           )->connect->selectall_arrayref(
                  'SELECT datname from pg_database order by datname'
-           );
+           ) };
 }
 
 =head2 create
@@ -148,13 +149,14 @@ sub create {
     my %args = @_;
 
     local $ENV{PGPASSWORD} = $self->password;
-    my $command = "createdb"
+    my $command = "createdb "
                   . join (' ', (
                        $self->username ? "-U " . $self->username . ' ' : '' ,
                        $args{copy_of} ? "-T $args{copy_of} " : ''           ,
                        $self->dbname)
                   );
     `$command` && die "Error creating db: $!,$@";
+    return 1;
 }
 
 =head2 run_file
@@ -207,7 +209,7 @@ sub run_file {
                         $self->dbname ? $self->dbname : ' ' ,
                         $log)
                   );
-    `$command` && die "Error running sql file: $!, $@";
+    `$command` || die "Error running sql file: $!, $@";
 }
 
 =head2 backup
@@ -236,16 +238,20 @@ Returns the file name of the tempfile.
 sub backup {
     my ($self, %args) = @_;
     local $ENV{PGPASSWORD} = $self->password;
-    my $tempdir = $ENV{TEMP} || '/tmp/';
-    my (undef, $tempfile) = $args{file} || File::Temp->new(
-                                      DIR => $tempdir, UNLINK => 1
-    );
+    my $tempdir = $args{tempdir} || $ENV{TEMP} || '/tmp';
+    $tempdir =~ s|/$||;
+    
+    my $tempfile = $args{file} || File::Temp->new(
+                                      DIR => $tempdir, UNLINK => 0
+                                  )->filename 
+                                      || die "could not create temp file: $@, $!";
     my $command = 'pg_dump ' . join(" ", (
-                  $self->dbname ? "-d " . $self->dbname . " " : ''      ,
-                  $self->username ? "-U " . $self->username . ' ' : ''  ,
-                  $args{format} ? "-F$args{format} " : ''               ,
-                  qq(-f "$tempdir/$tempfile" )));
+                  $self->dbname         ? "-d " . $self->dbname . " "   : '' ,
+                  $self->username       ? "-U " . $self->username . ' ' : '' ,
+                  defined $args{format} ? "-F$args{format} "            : '' ,
+                  qq(> "$tempfile" )));
     `$command` && die "Error taking backup: $!, $@";
+    `cat "$tempfile"`;
     return $tempfile;
 }
 
@@ -287,7 +293,7 @@ sub restore {
     croak 'Must specify file' unless $args{file};
 
     return $self->run_file(%args) 
-           if $args{format} eq 'p' or not defined $args{format};
+           if not defined $args{format} or $args{format} eq 'p';
 
     local $ENV{PGPASSWORD} = $self->password;
     my $log = '';
@@ -301,11 +307,12 @@ sub restore {
           $log .= qq(2>> "$args{errlog}" );
        }
     }
-#    my $command = 'pg_restore ' .
-#                  ( $self->dbname ? "-d " . $self->dbname . " " : '' )
-#                  . ($self->username ? "-U " . $self->username . ' ' : '' )
-#                  . qq(-F$args{format} "$args{file}");
-#    `$command` && die "Error taking backup: $!, $@";
+    my $command = 'pg_restore ' . join(' ', (
+                  $self->dbname         ? "-d " . $self->dbname . " "   : '' ,
+                  $self->username       ? "-U " . $self->username . ' ' : '' ,
+                  defined $args{format} ? "-F$args{format}"             : '' ,
+                  qq("$args{file}")));
+    `$command` && die "Error taking backup: $!, $@";
 }
 
 =head2 drop
@@ -324,7 +331,10 @@ sub drop {
     my $command = "dropdb " . join (" ", (
                   $self->username ? "-U " . $self->username . ' ' : '' ,
                   $self->dbname));
-    `$command` && die "Error during dropdb: $!, $@";
+    `$command`;
+    no warnings;
+    warn $command;
+    return 1;
 }
 
 =head1 AUTHOR

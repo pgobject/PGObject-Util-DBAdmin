@@ -2,7 +2,7 @@ use Test::More;
 use PGObject::Util::DBAdmin;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 25;
+plan tests => 31;
 
 # Constructor
 
@@ -24,7 +24,7 @@ $db->drop;
 # List dbs
 my @dblist;
 
-ok(@dblist = $db->list, 'Got a db list');
+ok(@dblist = $db->list_dbs, 'Got a db list');
 
 ok (!grep {$_ eq 'pgobject_test_db'} @dblist, 'DB list does not contain pgobject_test_db');
 
@@ -32,7 +32,7 @@ ok (!grep {$_ eq 'pgobject_test_db'} @dblist, 'DB list does not contain pgobject
 
 $db->create;
 
-ok (grep {$_ eq 'pgobject_test_db'} $db->list, 'DB list does contain pgobject_test_db after create call');
+ok (grep {$_ eq 'pgobject_test_db'} $db->list_dbs, 'DB list does contain pgobject_test_db after create call');
 
 # load with schema
 
@@ -40,21 +40,32 @@ ok ($db->run_file(file => 't/data/schema.sql'), 'Loaded schema');
 
 ok ($dbh = $db->connect, 'Got dbi handle');
 
-my ($foo) = $dbh->selectall_array('select count(*) from test_data');
-is ($foo, 1, 'Correct count of data');
+my ($foo) = @{ $dbh->selectall_arrayref('select count(*) from test_data') };
+is ($foo->[0], 1, 'Correct count of data') ;
 
 $dbh->disconnect;
 
 # backup/drop/create/restore, formats undef, p, and c
 
+no warnings;
 for ((undef, 'p', 'c')) {
     my $backup;
     ok($backup = $db->backup(
+           format => $_,
+           tempdir => 't/var/',
        ), 'Made backup, format ' . $_ || 'undef');
     ok($db->drop, 'dropped db, format ' . $_ || 'undef');
+    ok (!grep {$_ eq 'pgobject_test_db'} @dblist, 
+           'DB list does not contain pgobject_test_db');
+
     ok($db->create, 'created db, format ' . $_ || 'undef');
     ok($dbh = $db->connect, 'Got dbi handle ' . $_ || 'undef');
-    ok(($foo) = $dbh->selectall_array('select count(*) from test_data'),
+    ok($db->restore(
+          format => $_,
+          file   => $backup,
+       ), 'Restored backup, format ' . $_ || 'undef');
+    ok(($foo) = $dbh->selectall_arrayref('select count(*) from test_data'),
                'Got results from test data count ' . $_ || 'undef');
-    is($foo, 1, 'correct data count ' . $_ || 'undef');
+    is($foo->[0]->[0], 1, 'correct data count ' . $_ || 'undef');
+    unlink "t/var/backups/$backup";
 }
