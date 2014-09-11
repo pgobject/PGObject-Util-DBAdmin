@@ -67,5 +67,6 @@ for ((undef, 'p', 'c')) {
     ok(($foo) = $dbh->selectall_arrayref('select count(*) from test_data'),
                'Got results from test data count ' . $_ || 'undef');
     is($foo->[0]->[0], 1, 'correct data count ' . $_ || 'undef');
-    unlink "t/var/backups/$backup";
+    $dbh->disconnect;
+    unlink $backup;
 }

@@ -312,7 +312,8 @@ sub restore {
                   $self->username       ? "-U " . $self->username . ' ' : '' ,
                   defined $args{format} ? "-F$args{format}"             : '' ,
                   qq("$args{file}")));
-    `$command` && die "Error taking backup: $!, $@";
+    `$command` && die "Error restoring backup: $!, $@";
+    return 1;
 }
 
 =head2 drop
@@ -332,8 +333,6 @@ sub drop {
                   $self->username ? "-U " . $self->username . ' ' : '' ,
                   $self->dbname));
     `$command`;
-    no warnings;
-    warn $command;
     return 1;
 }
 
