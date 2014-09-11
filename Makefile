@@ -16,10 +16,10 @@
 #     BUILD_REQUIRES => { Test::More=>q[0] }
 #     CONFIGURE_REQUIRES => { ExtUtils::MakeMaker=>q[0] }
 #     LICENSE => q[BSD]
-#     MIN_PERL_VERSION => q[5.006]
+#     MIN_PERL_VERSION => q[5.008]
 #     NAME => q[PGObject::Util::DBAdmin]
 #     PL_FILES => {  }
-#     PREREQ_PM => { Test::More=>q[0] }
+#     PREREQ_PM => { DBD::Pg=>q[0], Test::More=>q[0], DBI=>q[0] }
 #     TEST_REQUIRES => {  }
 #     VERSION_FROM => q[lib/PGObject/Util/DBAdmin.pm]
 #     clean => { FILES=>q[PGObject-Util-DBAdmin-*] }
@@ -441,22 +441,22 @@ clean_subdirs :
 
 clean :: clean_subdirs
 	- $(RM_F) \
-	  perl.exe pm_to_blib.ts \
-	  core.[0-9] core.[0-9][0-9][0-9][0-9] \
-	  *$(LIB_EXT) *$(OBJ_EXT) \
-	  $(INST_ARCHAUTODIR)/extralibs.ld mon.out \
-	  $(BASEEXT).def $(BASEEXT).exp \
-	  perl$(EXE_EXT) tmon.out \
-	  $(BOOTSTRAP) core.[0-9][0-9][0-9] \
-	  $(BASEEXT).bso $(INST_ARCHAUTODIR)/extralibs.all \
-	  perlmain.c *perl.core \
-	  $(MAKE_APERL_FILE) MYMETA.json \
-	  core.[0-9][0-9][0-9][0-9][0-9] MYMETA.yml \
-	  core.[0-9][0-9] core.*perl.*.? \
-	  pm_to_blib $(BASEEXT).x \
-	  blibdirs.ts core \
-	  so_locations perl \
-	  lib$(BASEEXT).def 
+	  $(BASEEXT).exp MYMETA.yml \
+	  core.[0-9][0-9] *perl.core \
+	  core perlmain.c \
+	  MYMETA.json $(BOOTSTRAP) \
+	  $(INST_ARCHAUTODIR)/extralibs.ld pm_to_blib \
+	  perl$(EXE_EXT) core.*perl.*.? \
+	  *$(LIB_EXT) $(INST_ARCHAUTODIR)/extralibs.all \
+	  $(BASEEXT).bso core.[0-9][0-9][0-9][0-9][0-9] \
+	  so_locations core.[0-9][0-9][0-9][0-9] \
+	  $(BASEEXT).x core.[0-9] \
+	  tmon.out *$(OBJ_EXT) \
+	  mon.out perl.exe \
+	  $(BASEEXT).def lib$(BASEEXT).def \
+	  pm_to_blib.ts $(MAKE_APERL_FILE) \
+	  blibdirs.ts perl \
+	  core.[0-9][0-9][0-9] 
 	- $(RM_RF) \
 	  PGObject-Util-DBAdmin-* blib 
 	- $(NOECHO) $(RM_F) $(MAKEFILE_OLD)
@@ -472,7 +472,7 @@ realclean_subdirs :
 # Delete temporary files (via clean) and also delete dist files
 realclean purge ::  clean realclean_subdirs
 	- $(RM_F) \
-	  $(MAKEFILE_OLD) $(FIRST_MAKEFILE) 
+	  $(FIRST_MAKEFILE) $(MAKEFILE_OLD) 
 	- $(RM_RF) \
 	  $(DISTVNAME) 
 
@@ -500,7 +500,9 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '    - t' >> META_new.yml
 	$(NOECHO) $(ECHO) '    - inc' >> META_new.yml
 	$(NOECHO) $(ECHO) 'requires:' >> META_new.yml
-	$(NOECHO) $(ECHO) '  perl: 5.006' >> META_new.yml
+	$(NOECHO) $(ECHO) '  DBD::Pg: 0' >> META_new.yml
+	$(NOECHO) $(ECHO) '  DBI: 0' >> META_new.yml
+	$(NOECHO) $(ECHO) '  perl: 5.008' >> META_new.yml
 	$(NOECHO) $(ECHO) 'version: 0.01' >> META_new.yml
 	-$(NOECHO) $(MV) META_new.yml $(DISTVNAME)/META.yml
 	$(NOECHO) $(ECHO) Generating META.json
@@ -538,7 +540,9 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '      },' >> META_new.json
 	$(NOECHO) $(ECHO) '      "runtime" : {' >> META_new.json
 	$(NOECHO) $(ECHO) '         "requires" : {' >> META_new.json
-	$(NOECHO) $(ECHO) '            "perl" : "5.006"' >> META_new.json
+	$(NOECHO) $(ECHO) '            "DBD::Pg" : "0",' >> META_new.json
+	$(NOECHO) $(ECHO) '            "DBI" : "0",' >> META_new.json
+	$(NOECHO) $(ECHO) '            "perl" : "5.008"' >> META_new.json
 	$(NOECHO) $(ECHO) '         }' >> META_new.json
 	$(NOECHO) $(ECHO) '      }' >> META_new.json
 	$(NOECHO) $(ECHO) '   },' >> META_new.json
@@ -847,7 +851,9 @@ ppd :
 	$(NOECHO) $(ECHO) '    <ABSTRACT>PostgreSQL Database Management Facilities for </ABSTRACT>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>Chris Travers &lt;chris@efficito.com&gt;</AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <PERLCORE VERSION="5,006,0,0" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <PERLCORE VERSION="5,008,0,0" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="DBD::Pg" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="DBI::" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="i386-linux-thread-multi-5.18" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <CODEBASE HREF="" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    </IMPLEMENTATION>' >> $(DISTNAME).ppd

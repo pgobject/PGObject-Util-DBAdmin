@@ -32,7 +32,9 @@
       },
       "runtime" : {
          "requires" : {
-            "perl" : "5.006"
+            "DBD::Pg" : "0",
+            "DBI" : "0",
+            "perl" : "5.008"
          }
       }
    },
