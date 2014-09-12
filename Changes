@@ -1,5 +1,9 @@
 Revision history for PGObject-Util-DBAdmin
 
+0.02	2014-09-12
+	Better error handling of external programs, using Tiny::Capture to 
+        process external stderr
+
 0.01    2014-09-11
         First version, released on an unsuspecting world.
 
