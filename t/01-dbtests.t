@@ -19,7 +19,7 @@ ok($db = PGObject::Util::DBAdmin->new(
 
 # Drop db if exists
 
-$db->drop;
+eval { $db->drop };
 
 # List dbs
 my @dblist;

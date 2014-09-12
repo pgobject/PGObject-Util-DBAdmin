@@ -13,6 +13,8 @@ env:
   - DB_TESTING: 1
 before_install:
    - "cpanm DBI"
+   - "cpanm Moo"
+   - "cpanm Capture::Tiny"
    - "cpanm DBD::Pg"
    - "cpanm Test::More"
    - "cpanm Devel::Cover::Report::Coveralls"

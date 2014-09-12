@@ -8,6 +8,7 @@ use Carp;
 use Moo;
 use DBI;
 use File::Temp;
+use Capture::Tiny ':all';
 
 =head1 NAME
 
@@ -16,11 +17,11 @@ PGObject
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 SYNOPSIS
@@ -155,7 +156,11 @@ sub create {
                        $args{copy_of} ? "-T $args{copy_of} " : ''           ,
                        $self->dbname)
                   );
-    `$command` && die "Error creating db: $!,$@";
+    my $stderr = capture_stderr sub{ `$command` };
+    for my $err (split /\n/, $stderr) {
+          die $err if $err =~ /ERROR/;
+          print STDERR $err;
+    }
     return 1;
 }
 
@@ -183,6 +188,10 @@ Path to error log to store stderr output
 
 Path to where to log standard outut
 
+=item continue_on_error
+
+If set, does not die on error.
+
 =back
 
 =cut
@@ -192,24 +201,34 @@ sub run_file {
     croak 'Must specify file' unless $args{file};
     local $ENV{PGPASSWORD} = $self->password;
     my $log = '';
+    my $errlog = 0;
     if ($args{log}){
-       $log = qq(>> "$args{log}" 2>&1 );
+       $log = qq( 1>&2 );
+       $errlog = 1;
+       open(ERRLOG, '>>', $args{log})
     } else {
        if ($args{stdout_log}){
           $log .= qq(>> "$args{stdout_log}" );
        }
        if ($args{errlog}){
-          $log .= qq(2>> "$args{errlog}" );
+          $errlog = 1;
+          open(ERRLOG, '>>', $args{errlog})
        }
     }
-
     my $command = qq(psql -f "$args{file}" )
                   . join(' ', 
                        ($self->username ? "-U " . $self->username . ' ' : '',
                         $self->dbname ? $self->dbname : ' ' ,
                         $log)
                   );
-    `$command` || die "Error running sql file: $!, $@";
+    my $stderr = capture_stderr sub{ `$command` };
+    for my $err (split /\n/, $stderr) {
+          print ERRLOG $err if $errlog;
+          die $err if $err =~ /ERROR/ and not $args{continue_on_error};
+          print STDERR $err;
+    }
+    close ERRLOG if $errlog;
+    return 1;
 }
 
 =head2 backup
@@ -250,8 +269,11 @@ sub backup {
                   $self->username       ? "-U " . $self->username . ' ' : '' ,
                   defined $args{format} ? "-F$args{format} "            : '' ,
                   qq(> "$tempfile" )));
-    `$command` && die "Error taking backup: $!, $@";
-    `cat "$tempfile"`;
+    my $stderr = capture_stderr sub{ `$command` };
+    for my $err (split /\n/, $stderr) {
+          die $err if $err =~ /ERROR/;
+          print STDERR $err;
+    }
     return $tempfile;
 }
 
@@ -284,6 +306,10 @@ Path to error log to store stderr output
 
 Path to where to log standard outut
 
+=item continue_on_error
+
+Don't die if an error occurs.
+
 =back
 
 =cut
@@ -297,14 +323,18 @@ sub restore {
 
     local $ENV{PGPASSWORD} = $self->password;
     my $log = '';
+    my $errlog;
     if ($args{log}){
-       $log = qq(>> "$args{log}" 2>&1 );
+       $log = qq( 1>&2 );
+       $errlog = 1;
+       open(ERRLOG, '>>', $args{log})
     } else {
        if ($args{stdout_log}){
           $log .= qq(>> "$args{stdout_log}" );
        }
        if ($args{errlog}){
-          $log .= qq(2>> "$args{errlog}" );
+          $errlog = 1;
+          open(ERRLOG, '>>', $args{errlog})
        }
     }
     my $command = 'pg_restore ' . join(' ', (
@@ -312,7 +342,13 @@ sub restore {
                   $self->username       ? "-U " . $self->username . ' ' : '' ,
                   defined $args{format} ? "-F$args{format}"             : '' ,
                   qq("$args{file}")));
-    `$command` && die "Error restoring backup: $!, $@";
+    my $stderr = capture_stderr sub{ `$command` };
+    for my $err (split /\n/, $stderr) {
+          print ERRLOG $err if $errlog;
+          die $err if $err =~ /ERROR/ and not $args{continue_on_error};
+          print STDERR $err;
+    }
+    close ERRLOG if $errlog;
     return 1;
 }
 
@@ -332,7 +368,12 @@ sub drop {
     my $command = "dropdb " . join (" ", (
                   $self->username ? "-U " . $self->username . ' ' : '' ,
                   $self->dbname));
-    `$command`;
+    my $err;
+    my $stderr = capture_stderr sub{ `$command` };
+    for my $err (split /\n/, $stderr) {
+          die $err if $err =~ /ERROR/;
+          print STDERR $err;
+    }
     return 1;
 }
 

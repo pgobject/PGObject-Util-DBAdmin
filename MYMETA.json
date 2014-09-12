@@ -25,19 +25,23 @@
             "Test::More" : "0"
          }
       },
-      "configure" : {
-         "requires" : {
-            "ExtUtils::MakeMaker" : "0"
-         }
-      },
       "runtime" : {
          "requires" : {
+            "Capture::Tiny" : "0",
             "DBD::Pg" : "0",
             "DBI" : "0",
+            "Moo" : "0",
             "perl" : "5.008"
          }
       }
    },
    "release_status" : "stable",
-   "version" : "0.01"
+   "resources" : {
+      "repository" : {
+         "type" : "git",
+         "url" : "https://github.com/einhverfr/PGObject-Util-DBAdmin.git",
+         "web" : "https://github.com/einhverfr/PGObject-Util-DBAdmin"
+      }
+   },
+   "version" : "0.02"
 }

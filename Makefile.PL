@@ -18,9 +18,21 @@ WriteMakefile(
         'Test::More' => 0,
     },
     PREREQ_PM => {
-        'DBD::Pg'    => 0,
-        'DBI'        => 0,
+        'DBD::Pg'       => 0,
+        'Capture::Tiny' => 0,
+        'DBI'           => 0,
+        'Moo'           => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'PGObject-Util-DBAdmin-*' },
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+         resources => {
+             repository => {
+                 type => 'git',
+                 url  => 'https://github.com/einhverfr/PGObject-Util-DBAdmin.git',
+                 web  => 'https://github.com/einhverfr/PGObject-Util-DBAdmin',
+             },
+         },
+    },
 );

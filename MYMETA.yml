@@ -4,8 +4,6 @@ author:
   - 'Chris Travers <chris@efficito.com>'
 build_requires:
   Test::More: 0
-configure_requires:
-  ExtUtils::MakeMaker: 0
 dynamic_config: 0
 generated_by: 'ExtUtils::MakeMaker version 6.72, CPAN::Meta::Converter version 2.132140'
 license: bsd
@@ -18,7 +16,11 @@ no_index:
     - t
     - inc
 requires:
+  Capture::Tiny: 0
   DBD::Pg: 0
   DBI: 0
+  Moo: 0
   perl: 5.008
-version: 0.01
+resources:
+  repository: https://github.com/einhverfr/PGObject-Util-DBAdmin.git
+version: 0.02
