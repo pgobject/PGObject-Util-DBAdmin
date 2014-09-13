@@ -17,11 +17,11 @@ PGObject
 
 =head1 VERSION
 
-Version 0.03
+Version 0.05
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.05';
 
 
 =head1 SYNOPSIS
@@ -113,6 +113,22 @@ sub connect {
                            $self->username, $self->password);
 }
 
+=head2 server_version
+
+returns a version string (like 9.1.4) for PostgreSQL
+
+=cut
+
+sub server_version {
+    my $self = shift @_;
+    my $version = 
+           __PACKAGE__->new($self->export, (dbname => 'template1')
+                           )->connect->selectrow_array('SELECT version()');
+    $version =~ /(\d+\.\d+\.\d+)/;
+    my $retval = $1;
+    return $retval;
+}
+
 =head2 list_dbs
 
 Returns a list of db names.
@@ -153,8 +169,8 @@ sub create {
     my $command = "createdb "
                   . join (' ', (
                        $self->username ? "-U " . $self->username . ' ' : '' ,
-                       $args{copy_of} ? "-T $args{copy_of} " : ''           ,
-                       $self->dbname)
+                       $args{copy_of}  ? "-T $args{copy_of} "          : '' ,
+                       $self->dbname   ? $self->dbname                 : '' )
                   );
     my $stderr = capture_stderr sub{ `$command` };
     die $stderr if $stderr;

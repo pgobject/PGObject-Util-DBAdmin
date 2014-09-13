@@ -7,7 +7,10 @@ MYMETA.json
 README
 t/00-load.t
 t/01-dbtests.t
+t/02-dbexceptions.t
 t/boilerplate.t
+t/data/backup.sqlc
+t/data/bad.sql
 t/data/schema.sql
 t/manifest.t
 t/pod-coverage.t

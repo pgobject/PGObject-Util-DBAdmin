@@ -2,7 +2,7 @@ use Test::More;
 use PGObject::Util::DBAdmin;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 31;
+plan tests => 32;
 
 # Constructor
 
@@ -31,6 +31,8 @@ ok (!grep {$_ eq 'pgobject_test_db'} @dblist, 'DB list does not contain pgobject
 # Create db
 
 $db->create;
+
+ok($db->server_version, 'Got a server version');
 
 ok (grep {$_ eq 'pgobject_test_db'} $db->list_dbs, 'DB list does contain pgobject_test_db after create call');
 

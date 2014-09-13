@@ -3,6 +3,7 @@ abstract: 'PostgreSQL Database Management Facilities for '
 author:
   - 'Chris Travers <chris@efficito.com>'
 build_requires:
+  Test::Exception: 0
   Test::More: 0
 dynamic_config: 0
 generated_by: 'ExtUtils::MakeMaker version 6.72, CPAN::Meta::Converter version 2.132140'
@@ -23,4 +24,4 @@ requires:
   perl: 5.008
 resources:
   repository: https://github.com/einhverfr/PGObject-Util-DBAdmin.git
-version: 0.02
+version: 0.05

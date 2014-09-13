@@ -1,5 +1,10 @@
 Revision history for PGObject-Util-DBAdmin
 
+0.05	2014-09-14
+	Additional tests
+	Fixing packaging bugs
+	Adding server_version api
+
 0.03	2014-09-13
 	Better handling of auth environment variables so they don't always clobber
 	Fixes to exception handling

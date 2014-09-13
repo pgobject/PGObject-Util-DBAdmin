@@ -13,18 +13,18 @@
 
 #     ABSTRACT_FROM => q[lib/PGObject/Util/DBAdmin.pm]
 #     AUTHOR => [q[Chris Travers <chris@efficito.com>]]
-#     BUILD_REQUIRES => { Test::More=>q[0] }
+#     BUILD_REQUIRES => { Test::More=>q[0], Test::Exception=>q[0] }
 #     CONFIGURE_REQUIRES => { ExtUtils::MakeMaker=>q[0] }
 #     LICENSE => q[BSD]
-#     META_MERGE => { resources=>{ repository=>{ type=>q[git], web=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin], url=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin.git] } }, meta-spec=>{ version=>q[2] } }
+#     META_MERGE => { resources=>{ repository=>{ url=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin.git], web=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin], type=>q[git] } }, meta-spec=>{ version=>q[2] } }
 #     MIN_PERL_VERSION => q[5.008]
 #     NAME => q[PGObject::Util::DBAdmin]
 #     PL_FILES => {  }
-#     PREREQ_PM => { Test::More=>q[0], DBI=>q[0], Moo=>q[0], Capture::Tiny=>q[0], DBD::Pg=>q[0] }
+#     PREREQ_PM => { Test::More=>q[0], Capture::Tiny=>q[0], DBI=>q[0], DBD::Pg=>q[0], Moo=>q[0], Test::Exception=>q[0] }
 #     TEST_REQUIRES => {  }
 #     VERSION_FROM => q[lib/PGObject/Util/DBAdmin.pm]
 #     clean => { FILES=>q[PGObject-Util-DBAdmin-*] }
-#     dist => { SUFFIX=>q[gz], COMPRESS=>q[gzip -9f] }
+#     dist => { COMPRESS=>q[gzip -9f], SUFFIX=>q[gz] }
 
 # --- MakeMaker post_initialize section:
 
@@ -63,11 +63,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = PGObject::Util::DBAdmin
 NAME_SYM = PGObject_Util_DBAdmin
-VERSION = 0.02
+VERSION = 0.05
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_02
+VERSION_SYM = 0_05
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.02
+XS_VERSION = 0.05
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -259,7 +259,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = PGObject-Util-DBAdmin
-DISTVNAME = PGObject-Util-DBAdmin-0.02
+DISTVNAME = PGObject-Util-DBAdmin-0.05
 
 
 # --- MakeMaker macro section:
@@ -442,22 +442,22 @@ clean_subdirs :
 
 clean :: clean_subdirs
 	- $(RM_F) \
-	  $(BASEEXT).bso so_locations \
-	  MYMETA.yml perl.exe \
-	  core.*perl.*.? *perl.core \
-	  pm_to_blib.ts $(MAKE_APERL_FILE) \
-	  pm_to_blib tmon.out \
-	  core MYMETA.json \
-	  core.[0-9][0-9][0-9] blibdirs.ts \
-	  lib$(BASEEXT).def perl \
-	  $(INST_ARCHAUTODIR)/extralibs.ld core.[0-9][0-9][0-9][0-9][0-9] \
-	  *$(OBJ_EXT) $(INST_ARCHAUTODIR)/extralibs.all \
-	  perl$(EXE_EXT) $(BASEEXT).x \
-	  core.[0-9][0-9][0-9][0-9] $(BASEEXT).def \
-	  core.[0-9] core.[0-9][0-9] \
-	  $(BOOTSTRAP) $(BASEEXT).exp \
-	  *$(LIB_EXT) mon.out \
-	  perlmain.c 
+	  MYMETA.yml $(BASEEXT).x \
+	  perl core \
+	  core.[0-9][0-9][0-9][0-9][0-9] core.*perl.*.? \
+	  pm_to_blib *$(OBJ_EXT) \
+	  *$(LIB_EXT) $(INST_ARCHAUTODIR)/extralibs.all \
+	  core.[0-9][0-9] pm_to_blib.ts \
+	  core.[0-9][0-9][0-9] so_locations \
+	  blibdirs.ts perl$(EXE_EXT) \
+	  perlmain.c $(INST_ARCHAUTODIR)/extralibs.ld \
+	  mon.out $(BOOTSTRAP) \
+	  core.[0-9][0-9][0-9][0-9] $(MAKE_APERL_FILE) \
+	  perl.exe core.[0-9] \
+	  $(BASEEXT).bso MYMETA.json \
+	  lib$(BASEEXT).def $(BASEEXT).def \
+	  *perl.core tmon.out \
+	  $(BASEEXT).exp 
 	- $(RM_RF) \
 	  PGObject-Util-DBAdmin-* blib 
 	- $(NOECHO) $(RM_F) $(MAKEFILE_OLD)
@@ -486,6 +486,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) 'author:' >> META_new.yml
 	$(NOECHO) $(ECHO) '  - '\''Chris Travers <chris@efficito.com>'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) 'build_requires:' >> META_new.yml
+	$(NOECHO) $(ECHO) '  Test::Exception: 0' >> META_new.yml
 	$(NOECHO) $(ECHO) '  Test::More: 0' >> META_new.yml
 	$(NOECHO) $(ECHO) 'dynamic_config: 1' >> META_new.yml
 	$(NOECHO) $(ECHO) 'generated_by: '\''ExtUtils::MakeMaker version 6.72, CPAN::Meta::Converter version 2.132140'\''' >> META_new.yml
@@ -506,7 +507,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '  perl: 5.008' >> META_new.yml
 	$(NOECHO) $(ECHO) 'resources:' >> META_new.yml
 	$(NOECHO) $(ECHO) '  repository: https://github.com/einhverfr/PGObject-Util-DBAdmin.git' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version: 0.02' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version: 0.05' >> META_new.yml
 	-$(NOECHO) $(MV) META_new.yml $(DISTVNAME)/META.yml
 	$(NOECHO) $(ECHO) Generating META.json
 	$(NOECHO) $(ECHO) '{' > META_new.json
@@ -533,6 +534,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '   "prereqs" : {' >> META_new.json
 	$(NOECHO) $(ECHO) '      "build" : {' >> META_new.json
 	$(NOECHO) $(ECHO) '         "requires" : {' >> META_new.json
+	$(NOECHO) $(ECHO) '            "Test::Exception" : "0",' >> META_new.json
 	$(NOECHO) $(ECHO) '            "Test::More" : "0"' >> META_new.json
 	$(NOECHO) $(ECHO) '         }' >> META_new.json
 	$(NOECHO) $(ECHO) '      },' >> META_new.json
@@ -554,7 +556,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '         "web" : "https://github.com/einhverfr/PGObject-Util-DBAdmin"' >> META_new.json
 	$(NOECHO) $(ECHO) '      }' >> META_new.json
 	$(NOECHO) $(ECHO) '   },' >> META_new.json
-	$(NOECHO) $(ECHO) '   "version" : "0.02"' >> META_new.json
+	$(NOECHO) $(ECHO) '   "version" : "0.05"' >> META_new.json
 	$(NOECHO) $(ECHO) '}' >> META_new.json
 	-$(NOECHO) $(MV) META_new.json $(DISTVNAME)/META.json
 
