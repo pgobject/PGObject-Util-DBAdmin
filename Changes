@@ -1,5 +1,10 @@
 Revision history for PGObject-Util-DBAdmin
 
+0.03	2014-09-13
+	Better handling of auth environment variables so they don't always clobber
+	Fixes to exception handling
+	More tests
+
 0.02	2014-09-12
 	Better error handling of external programs, using Tiny::Capture to 
         process external stderr
