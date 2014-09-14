@@ -1,6 +1,9 @@
 Revision history for PGObject-Util-DBAdmin
 
 0.05	2014-09-14
+	Added backup of globals
+
+0.04	2014-09-14
 	Additional tests
 	Fixing packaging bugs
 	Adding server_version api

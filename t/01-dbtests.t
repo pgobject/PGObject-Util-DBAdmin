@@ -2,7 +2,7 @@ use Test::More;
 use PGObject::Util::DBAdmin;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 32;
+plan tests => 33;
 
 # Constructor
 
@@ -20,6 +20,8 @@ ok($db = PGObject::Util::DBAdmin->new(
 # Drop db if exists
 
 eval { $db->drop };
+
+ok($db->backup_globals, 'can backup globals');
 
 # List dbs
 my @dblist;

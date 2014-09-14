@@ -290,6 +290,51 @@ sub backup {
     return $tempfile;
 }
 
+=head2 backup_globals
+
+This creates a plain text dump of global (inter-db) objects, such as users 
+and tablespaces.  It uses pg_dumpall to do this.
+
+Options include:
+
+=over
+
+=item file
+
+File name in the path.
+
+=item tempdir
+
+The directory to store temp files in.  Defaults to $ENV{TEMP} if set and 
+'/tmp/' if not.
+
+=back
+
+Being a plain text file, it can be run using the run_file api.
+
+=cut
+
+sub backup_globals {
+    my ($self, %args) = @_;
+    local $ENV{PGPASSWORD} = $self->password if $self->password;
+    my $tempdir = $args{tempdir} || $ENV{TEMP} || '/tmp';
+    $tempdir =~ s|/$||;
+    
+    my $tempfile = $args{file} || File::Temp->new(
+                                      DIR => $tempdir, UNLINK => 0
+                                  )->filename 
+                                      || die "could not create temp file: $@, $!";
+    my $command = 'pg_dumpall -g ' . join(" ", (
+                  $self->username       ? "-U " . $self->username . ' ' : '' ,
+                  qq(> "$tempfile" )));
+    my $stderr = capture_stderr { `$command` };
+    print STDERR $stderr;
+    for my $err (split /\n/, $stderr) {
+          die $err if $err =~ /(ERROR|FATAL)/;
+    }
+    return $tempfile;
+}
+
 =head2 restore
 
 Restores from a saved file.  Must pass in the file name as a named argument.
