@@ -170,6 +170,8 @@ sub create {
                   . join (' ', (
                        $self->username ? "-U " . $self->username . ' ' : '' ,
                        $args{copy_of}  ? "-T $args{copy_of} "          : '' ,
+                       $self->host     ? "-h " . $self->host . " "     : '' ,
+                       $self->port     ? "-p " . $self->port . " "     : '' ,
                        $self->dbname   ? $self->dbname                 : '' )
                   );
     my $stderr = capture_stderr sub{ `$command` };
@@ -231,10 +233,12 @@ sub run_file {
     my $command = qq(psql -f "$args{file}" )
                   . join(' ', 
                        ($self->username ? "-U " . $self->username . ' ' : '',
+                        $self->host     ? "-h " . $self->host . " "     : '' ,
+                        $self->port     ? "-p " . $self->port . " "     : '' ,
                         $self->dbname ? $self->dbname : ' ' ,
                         $log)
                   );
-    my $stderr = capture_stderr sub{ `$command` || die "ERROR: $!" };
+    my $stderr = capture_stderr sub{ `$command` || print STDERR ' APPLICATION ERROR ' . "\n"; };
     print STDERR $stderr;
     print ERRLOG $stderr if $errlog;
     close ERRLOG if $errlog;
@@ -280,6 +284,8 @@ sub backup {
     my $command = 'pg_dump ' . join(" ", (
                   $self->dbname         ? "-d " . $self->dbname . " "   : '' ,
                   $self->username       ? "-U " . $self->username . ' ' : '' ,
+                  $self->host           ? "-h " . $self->host . " "     : '' ,
+                  $self->port           ? "-p " . $self->port . " "     : '' ,
                   defined $args{format} ? "-F$args{format} "            : '' ,
                   qq(> "$tempfile" )));
     my $stderr = capture_stderr { `$command` };
@@ -326,6 +332,8 @@ sub backup_globals {
                                       || die "could not create temp file: $@, $!";
     my $command = 'pg_dumpall -g ' . join(" ", (
                   $self->username       ? "-U " . $self->username . ' ' : '' ,
+                  $self->host           ? "-h " . $self->host . " "     : '' ,
+                  $self->port           ? "-p " . $self->port . " "     : '' ,
                   qq(> "$tempfile" )));
     my $stderr = capture_stderr { `$command` };
     print STDERR $stderr;
@@ -394,6 +402,8 @@ sub restore {
     my $command = 'pg_restore ' . join(' ', (
                   $self->dbname         ? "-d " . $self->dbname . " "   : '' ,
                   $self->username       ? "-U " . $self->username . ' ' : '' ,
+                  $self->host           ? "-h " . $self->host . " "     : '' ,
+                  $self->port           ? "-p " . $self->port . " "     : '' ,
                   defined $args{format} ? "-F$args{format}"             : '' ,
                   qq("$args{file}")));
     my $stderr = capture_stderr sub{ `$command` };
@@ -421,6 +431,8 @@ sub drop {
     
     my $command = "dropdb " . join (" ", (
                   $self->username ? "-U " . $self->username . ' ' : '' ,
+                  $self->host     ? "-h " . $self->host . " "     : '' ,
+                  $self->port     ? "-p " . $self->port . " "     : '' ,
                   $self->dbname));
     my $stderr = capture_stderr { `$command` };
     die $stderr if $stderr =~ /(ERROR|FATAL)/;
