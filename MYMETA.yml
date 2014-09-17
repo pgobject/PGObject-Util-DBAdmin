@@ -24,4 +24,4 @@ requires:
   perl: 5.008
 resources:
   repository: https://github.com/einhverfr/PGObject-Util-DBAdmin.git
-version: 0.04
+version: 0.06

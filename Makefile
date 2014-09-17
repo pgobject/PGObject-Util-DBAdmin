@@ -13,14 +13,14 @@
 
 #     ABSTRACT_FROM => q[lib/PGObject/Util/DBAdmin.pm]
 #     AUTHOR => [q[Chris Travers <chris@efficito.com>]]
-#     BUILD_REQUIRES => { Test::More=>q[0], Test::Exception=>q[0] }
+#     BUILD_REQUIRES => { Test::Exception=>q[0], Test::More=>q[0] }
 #     CONFIGURE_REQUIRES => { ExtUtils::MakeMaker=>q[0] }
 #     LICENSE => q[BSD]
-#     META_MERGE => { meta-spec=>{ version=>q[2] }, resources=>{ repository=>{ type=>q[git], web=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin], url=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin.git] } } }
+#     META_MERGE => { meta-spec=>{ version=>q[2] }, resources=>{ repository=>{ web=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin], type=>q[git], url=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin.git] } } }
 #     MIN_PERL_VERSION => q[5.008]
 #     NAME => q[PGObject::Util::DBAdmin]
 #     PL_FILES => {  }
-#     PREREQ_PM => { Test::Exception=>q[0], Moo=>q[0], DBI=>q[0], Test::More=>q[0], Capture::Tiny=>q[0], DBD::Pg=>q[0] }
+#     PREREQ_PM => { Test::Exception=>q[0], DBD::Pg=>q[0], DBI=>q[0], Test::More=>q[0], Moo=>q[0], Capture::Tiny=>q[0] }
 #     TEST_REQUIRES => {  }
 #     VERSION_FROM => q[lib/PGObject/Util/DBAdmin.pm]
 #     clean => { FILES=>q[PGObject-Util-DBAdmin-*] }
@@ -63,11 +63,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = PGObject::Util::DBAdmin
 NAME_SYM = PGObject_Util_DBAdmin
-VERSION = 0.04
+VERSION = 0.06
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_04
+VERSION_SYM = 0_06
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.04
+XS_VERSION = 0.06
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -259,7 +259,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = PGObject-Util-DBAdmin
-DISTVNAME = PGObject-Util-DBAdmin-0.04
+DISTVNAME = PGObject-Util-DBAdmin-0.06
 
 
 # --- MakeMaker macro section:
@@ -442,22 +442,22 @@ clean_subdirs :
 
 clean :: clean_subdirs
 	- $(RM_F) \
-	  MYMETA.json pm_to_blib \
-	  core.*perl.*.? $(INST_ARCHAUTODIR)/extralibs.ld \
-	  *perl.core core.[0-9][0-9] \
-	  *$(LIB_EXT) core.[0-9][0-9][0-9][0-9][0-9] \
-	  so_locations core.[0-9][0-9][0-9][0-9] \
-	  $(BASEEXT).bso $(INST_ARCHAUTODIR)/extralibs.all \
-	  core.[0-9][0-9][0-9] lib$(BASEEXT).def \
-	  blibdirs.ts *$(OBJ_EXT) \
-	  core $(BASEEXT).def \
-	  $(BOOTSTRAP) core.[0-9] \
-	  $(MAKE_APERL_FILE) mon.out \
-	  MYMETA.yml perlmain.c \
-	  $(BASEEXT).exp perl \
-	  perl$(EXE_EXT) tmon.out \
-	  pm_to_blib.ts $(BASEEXT).x \
-	  perl.exe 
+	  *$(LIB_EXT) $(INST_ARCHAUTODIR)/extralibs.all \
+	  *$(OBJ_EXT) $(MAKE_APERL_FILE) \
+	  MYMETA.json so_locations \
+	  MYMETA.yml $(BASEEXT).x \
+	  perl$(EXE_EXT) *perl.core \
+	  lib$(BASEEXT).def core.[0-9] \
+	  mon.out $(BASEEXT).bso \
+	  $(BOOTSTRAP) perlmain.c \
+	  core.[0-9][0-9] core.[0-9][0-9][0-9][0-9][0-9] \
+	  $(BASEEXT).def blibdirs.ts \
+	  pm_to_blib.ts tmon.out \
+	  perl perl.exe \
+	  core $(BASEEXT).exp \
+	  core.*perl.*.? core.[0-9][0-9][0-9][0-9] \
+	  $(INST_ARCHAUTODIR)/extralibs.ld core.[0-9][0-9][0-9] \
+	  pm_to_blib 
 	- $(RM_RF) \
 	  PGObject-Util-DBAdmin-* blib 
 	- $(NOECHO) $(RM_F) $(MAKEFILE_OLD)
@@ -507,7 +507,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '  perl: 5.008' >> META_new.yml
 	$(NOECHO) $(ECHO) 'resources:' >> META_new.yml
 	$(NOECHO) $(ECHO) '  repository: https://github.com/einhverfr/PGObject-Util-DBAdmin.git' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version: 0.04' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version: 0.06' >> META_new.yml
 	-$(NOECHO) $(MV) META_new.yml $(DISTVNAME)/META.yml
 	$(NOECHO) $(ECHO) Generating META.json
 	$(NOECHO) $(ECHO) '{' > META_new.json
@@ -556,7 +556,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '         "web" : "https://github.com/einhverfr/PGObject-Util-DBAdmin"' >> META_new.json
 	$(NOECHO) $(ECHO) '      }' >> META_new.json
 	$(NOECHO) $(ECHO) '   },' >> META_new.json
-	$(NOECHO) $(ECHO) '   "version" : "0.04"' >> META_new.json
+	$(NOECHO) $(ECHO) '   "version" : "0.06"' >> META_new.json
 	$(NOECHO) $(ECHO) '}' >> META_new.json
 	-$(NOECHO) $(MV) META_new.json $(DISTVNAME)/META.json
 
