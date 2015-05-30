@@ -1,6 +1,10 @@
 Revision history for PGObject-Util-DBAdmin
 
-0.06	2015-09-18
+0.07    2015-05-30
+        Fix loading of SQL files which don't generate STDOUT output
+        but get executed without errors
+
+0.06	2014-09-18
 	Fixed support for remote hosts.
 
 0.05	2014-09-14
