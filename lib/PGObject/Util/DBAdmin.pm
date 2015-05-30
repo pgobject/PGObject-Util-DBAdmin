@@ -239,9 +239,14 @@ sub run_file {
                         $self->dbname ? $self->dbname : ' ' ,
                         $log)
                   );
-    my $stderr = capture_stderr sub{
+    my $stderr = capture_stderr sub {
 	local ($?, $!);
-	`$command` || print STDERR ' APPLICATION ERROR ' . "\n"; };
+	my $result = `$command`;
+	print STDERR "\nAPPLICATION ERROR\n"
+	    if $? != 0;
+	return $result;
+    };
+
     print STDERR $stderr;
     print ERRLOG $stderr if $errlog;
     close ERRLOG if $errlog;
