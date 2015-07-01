@@ -13,25 +13,25 @@
 
 #     ABSTRACT_FROM => q[lib/PGObject/Util/DBAdmin.pm]
 #     AUTHOR => [q[Chris Travers <chris@efficito.com>]]
-#     BUILD_REQUIRES => { Test::Exception=>q[0], Test::More=>q[0] }
+#     BUILD_REQUIRES => { Test::More=>q[0], Test::Exception=>q[0] }
 #     CONFIGURE_REQUIRES => { ExtUtils::MakeMaker=>q[0] }
 #     LICENSE => q[BSD]
-#     META_MERGE => { meta-spec=>{ version=>q[2] }, resources=>{ repository=>{ web=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin], type=>q[git], url=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin.git] } } }
+#     META_MERGE => { resources=>{ repository=>{ type=>q[git], web=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin], url=>q[https://github.com/einhverfr/PGObject-Util-DBAdmin.git] } }, meta-spec=>{ version=>q[2] } }
 #     MIN_PERL_VERSION => q[5.008]
 #     NAME => q[PGObject::Util::DBAdmin]
 #     PL_FILES => {  }
-#     PREREQ_PM => { Test::Exception=>q[0], DBD::Pg=>q[0], DBI=>q[0], Test::More=>q[0], Moo=>q[0], Capture::Tiny=>q[0] }
+#     PREREQ_PM => { DBD::Pg=>q[0], DBI=>q[0], Capture::Tiny=>q[0], Test::Exception=>q[0], Moo=>q[0], Test::More=>q[0] }
 #     TEST_REQUIRES => {  }
 #     VERSION_FROM => q[lib/PGObject/Util/DBAdmin.pm]
 #     clean => { FILES=>q[PGObject-Util-DBAdmin-*] }
-#     dist => { COMPRESS=>q[gzip -9f], SUFFIX=>q[gz] }
+#     dist => { SUFFIX=>q[gz], COMPRESS=>q[gzip -9f] }
 
 # --- MakeMaker post_initialize section:
 
 
 # --- MakeMaker const_config section:
 
-# These definitions are from config.sh (via /usr/lib/perl5/Config.pm).
+# These definitions are from config.sh (via /usr/lib64/perl5/Config.pm).
 # They may have been overridden via Makefile.PL or on the command line.
 AR = ar
 CC = gcc
@@ -42,18 +42,18 @@ DLSRC = dl_dlopen.xs
 EXE_EXT = 
 FULL_AR = /usr/bin/ar
 LD = gcc
-LDDLFLAGS = -shared -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches -m32 -march=i686 -mtune=atom -fasynchronous-unwind-tables -Wl,-z,relro  -L/usr/local/lib
-LDFLAGS =  -fstack-protector -L/usr/local/lib
-LIBC = /lib/libc-2.18.so
+LDDLFLAGS = -shared -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches -m64 -mtune=generic -Wl,-z,relro 
+LDFLAGS =  -fstack-protector
+LIBC = 
 LIB_EXT = .a
 OBJ_EXT = .o
 OSNAME = linux
-OSVERS = 2.6.32-431.el6.x86_64
+OSVERS = 3.18.5-201.fc21.x86_64
 RANLIB = :
 SITELIBEXP = /usr/local/share/perl5
-SITEARCHEXP = /usr/local/lib/perl5
+SITEARCHEXP = /usr/local/lib64/perl5
 SO = so
-VENDORARCHEXP = /usr/lib/perl5/vendor_perl
+VENDORARCHEXP = /usr/lib64/perl5/vendor_perl
 VENDORLIBEXP = /usr/share/perl5/vendor_perl
 
 
@@ -88,11 +88,11 @@ INSTALLSITELIB = $(INSTALL_BASE)/lib/perl5
 DESTINSTALLSITELIB = $(DESTDIR)$(INSTALLSITELIB)
 INSTALLVENDORLIB = $(INSTALL_BASE)/lib/perl5
 DESTINSTALLVENDORLIB = $(DESTDIR)$(INSTALLVENDORLIB)
-INSTALLARCHLIB = $(INSTALL_BASE)/lib/perl5/i386-linux-thread-multi
+INSTALLARCHLIB = $(INSTALL_BASE)/lib/perl5/x86_64-linux-thread-multi
 DESTINSTALLARCHLIB = $(DESTDIR)$(INSTALLARCHLIB)
-INSTALLSITEARCH = $(INSTALL_BASE)/lib/perl5/i386-linux-thread-multi
+INSTALLSITEARCH = $(INSTALL_BASE)/lib/perl5/x86_64-linux-thread-multi
 DESTINSTALLSITEARCH = $(DESTDIR)$(INSTALLSITEARCH)
-INSTALLVENDORARCH = $(INSTALL_BASE)/lib/perl5/i386-linux-thread-multi
+INSTALLVENDORARCH = $(INSTALL_BASE)/lib/perl5/x86_64-linux-thread-multi
 DESTINSTALLVENDORARCH = $(DESTDIR)$(INSTALLVENDORARCH)
 INSTALLBIN = $(INSTALL_BASE)/bin
 DESTINSTALLBIN = $(DESTDIR)$(INSTALLBIN)
@@ -119,13 +119,13 @@ DESTINSTALLSITEMAN3DIR = $(DESTDIR)$(INSTALLSITEMAN3DIR)
 INSTALLVENDORMAN3DIR = $(INSTALL_BASE)/man/man3
 DESTINSTALLVENDORMAN3DIR = $(DESTDIR)$(INSTALLVENDORMAN3DIR)
 PERL_LIB = /usr/share/perl5
-PERL_ARCHLIB = /usr/lib/perl5
+PERL_ARCHLIB = /usr/lib64/perl5
 LIBPERL_A = libperl.a
 FIRST_MAKEFILE = Makefile
 MAKEFILE_OLD = Makefile.old
 MAKE_APERL_FILE = Makefile.aperl
 PERLMAINCC = $(CC)
-PERL_INC = /usr/lib/perl5/CORE
+PERL_INC = /usr/lib64/perl5/CORE
 PERL = /usr/bin/perl
 FULLPERL = /usr/bin/perl
 ABSPERL = $(PERL)
@@ -442,22 +442,22 @@ clean_subdirs :
 
 clean :: clean_subdirs
 	- $(RM_F) \
-	  *$(LIB_EXT) $(INST_ARCHAUTODIR)/extralibs.all \
-	  *$(OBJ_EXT) $(MAKE_APERL_FILE) \
-	  MYMETA.json so_locations \
-	  MYMETA.yml $(BASEEXT).x \
-	  perl$(EXE_EXT) *perl.core \
-	  lib$(BASEEXT).def core.[0-9] \
-	  mon.out $(BASEEXT).bso \
-	  $(BOOTSTRAP) perlmain.c \
-	  core.[0-9][0-9] core.[0-9][0-9][0-9][0-9][0-9] \
-	  $(BASEEXT).def blibdirs.ts \
-	  pm_to_blib.ts tmon.out \
-	  perl perl.exe \
-	  core $(BASEEXT).exp \
-	  core.*perl.*.? core.[0-9][0-9][0-9][0-9] \
-	  $(INST_ARCHAUTODIR)/extralibs.ld core.[0-9][0-9][0-9] \
-	  pm_to_blib 
+	  core $(INST_ARCHAUTODIR)/extralibs.ld \
+	  core.[0-9][0-9][0-9][0-9] core.[0-9][0-9] \
+	  so_locations MYMETA.json \
+	  pm_to_blib.ts $(BASEEXT).bso \
+	  perlmain.c *perl.core \
+	  core.*perl.*.? *$(OBJ_EXT) \
+	  lib$(BASEEXT).def perl \
+	  tmon.out $(BASEEXT).def \
+	  $(BASEEXT).x *$(LIB_EXT) \
+	  perl.exe core.[0-9] \
+	  core.[0-9][0-9][0-9] $(BASEEXT).exp \
+	  core.[0-9][0-9][0-9][0-9][0-9] perl$(EXE_EXT) \
+	  mon.out MYMETA.yml \
+	  $(BOOTSTRAP) pm_to_blib \
+	  $(INST_ARCHAUTODIR)/extralibs.all blibdirs.ts \
+	  $(MAKE_APERL_FILE) 
 	- $(RM_RF) \
 	  PGObject-Util-DBAdmin-* blib 
 	- $(NOECHO) $(RM_F) $(MAKEFILE_OLD)
@@ -842,7 +842,7 @@ subdirs-test ::
 
 
 test_dynamic :: pure_all
-	PERL_DL_NONLAZY=1 $(FULLPERLRUN) "-MExtUtils::Command::MM" "-e" "test_harness($(TEST_VERBOSE), '$(INST_LIB)', '$(INST_ARCHLIB)')" $(TEST_FILES)
+	PERL_DL_NONLAZY=1 $(FULLPERLRUN) "-MExtUtils::Command::MM" "-MTest::Harness" "-e" "undef *Test::Harness::Switches; test_harness($(TEST_VERBOSE), '$(INST_LIB)', '$(INST_ARCHLIB)')" $(TEST_FILES)
 
 testdb_dynamic :: pure_all
 	PERL_DL_NONLAZY=1 $(FULLPERLRUN) $(TESTDB_SW) "-I$(INST_LIB)" "-I$(INST_ARCHLIB)" $(TEST_FILE)
@@ -865,7 +865,7 @@ ppd :
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="DBD::Pg" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="DBI::" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Moo::" />' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="i386-linux-thread-multi-5.18" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="x86_64-linux-thread-multi-5.18" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <CODEBASE HREF="" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    </IMPLEMENTATION>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '</SOFTPKG>' >> $(DISTNAME).ppd

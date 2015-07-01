@@ -59,7 +59,7 @@ for ((undef, 'p', 'c')) {
            tempdir => 't/var/',
        ), 'Made backup, format ' . $_ || 'undef');
     ok($db->drop, 'dropped db, format ' . $_ || 'undef');
-    ok (!grep {$_ eq 'pgobject_test_db'} @dblist, 
+    ok (!(grep{$_ eq 'pgobject_test_db'} @dblist), 
            'DB list does not contain pgobject_test_db');
 
     ok($db->create, 'created db, format ' . $_ || 'undef');

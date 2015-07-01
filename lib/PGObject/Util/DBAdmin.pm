@@ -109,8 +109,11 @@ Connects to the db using DBI and returns a db connection
 
 sub connect {
     my $self = shift;
-    return DBI->connect('dbi:Pg:dbname=' . $self->dbname, 
-                           $self->username, $self->password);
+    my $dbh =  DBI->connect('dbi:Pg:dbname=' . $self->dbname, 
+                           $self->username, $self->password) 
+    or die "Cound not connect to database!";
+    return $dbh;
+           
 }
 
 =head2 server_version
