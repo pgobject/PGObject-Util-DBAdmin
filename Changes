@@ -1,6 +1,9 @@
 Revision history for PGObject-Util-DBAdmin
 
-0.06	2015-09-18
+0.07	2015-07-16
+	Fixed handling of connection when connection fails
+
+0.06	2014-09-18
 	Fixed support for remote hosts.
 
 0.05	2014-09-14
