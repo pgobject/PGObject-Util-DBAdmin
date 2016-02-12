@@ -12,25 +12,25 @@ use Capture::Tiny ':all';
 
 =head1 NAME
 
-PGObject::Util::DBAdmin - PostgreSQL Database Management Facilities for 
+PGObject::Util::DBAdmin - PostgreSQL Database Management Facilities for
 PGObject
 
 =head1 VERSION
 
-Version 0.07
+Version 0.08
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 
 =head1 SYNOPSIS
 
-This module provides an interface to the basic Postgres db manipulation 
+This module provides an interface to the basic Postgres db manipulation
 utilities.
 
  my $db = PGObject::Util::DBAdmin->new(
-    username => 'postgres', 
+    username => 'postgres',
     password => 'mypassword',
     host     => 'localhost',
     port     => '5432',
@@ -50,22 +50,22 @@ utilities.
 
 =head2 username
 
-=cut 
+=cut
 
 has username => (is => 'ro');
 
 =head2 password
 
-=cut 
+=cut
 
 has password => (is => 'ro');
 
 =head2 host
 
-In PostgreSQL, this can refer to the hostname or the absolute path to the 
+In PostgreSQL, this can refer to the hostname or the absolute path to the
 directory where the UNIX sockets are set up.
 
-=cut 
+=cut
 
 has host => (is => 'ro');
 
@@ -73,13 +73,13 @@ has host => (is => 'ro');
 
 Default '5432'
 
-=cut 
+=cut
 
 has port => (is => 'ro');
 
 =head2 dbname
 
-=cut 
+=cut
 
 has dbname => (is => 'ro');
 
@@ -101,19 +101,21 @@ sub export {
     return map {$_ => $self->$_() } qw(username password host port dbname)
 }
 
-=head2 connect
+=head2 connect($options)
 
-Connects to the db using DBI and returns a db connection
+Connects to the db using DBI and returns a db connection;
+allows specification of options in the $options hashref.
 
 =cut
 
 sub connect {
-    my $self = shift;
-    my $dbh =  DBI->connect('dbi:Pg:dbname=' . $self->dbname, 
-                           $self->username, $self->password) 
-    or die "Cound not connect to database!";
+    my ($self, $options) = @_;
+    my $dbh =  DBI->connect('dbi:Pg:dbname=' . $self->dbname,
+                            $self->username, $self->password,
+                            $options)
+        or die "Cound not connect to database!";
     return $dbh;
-           
+
 }
 
 =head2 server_version
@@ -124,7 +126,7 @@ returns a version string (like 9.1.4) for PostgreSQL
 
 sub server_version {
     my $self = shift @_;
-    my $version = 
+    my $version =
            __PACKAGE__->new($self->export, (dbname => 'template1')
                            )->connect->selectrow_array('SELECT version()');
     $version =~ /(\d+\.\d+\.\d+)/;
@@ -141,7 +143,7 @@ Returns a list of db names.
 sub list_dbs {
     my $self = shift;
 
-    return map { $_->[0] } 
+    return map { $_->[0] }
            @{ __PACKAGE__->new($self->export, (dbname => 'template1')
            )->connect->selectall_arrayref(
                  'SELECT datname from pg_database order by datname'
@@ -198,7 +200,7 @@ Path to file to be run
 Path to combined stderr/stdout log.  If specified, do not specify other logs
 as this is unsupported.
 
-=item errlog 
+=item errlog
 
 Path to error log to store stderr output
 
@@ -235,7 +237,7 @@ sub run_file {
        }
     }
     my $command = qq(psql -f "$args{file}" )
-                  . join(' ', 
+                  . join(' ',
                        ($self->username ? "-U " . $self->username . ' ' : '',
                         $self->host     ? "-h " . $self->host . " "     : '' ,
                         $self->port     ? "-p " . $self->port . " "     : '' ,
@@ -273,7 +275,7 @@ The specified format, for example c for custom.  Defaults to plain text
 
 =item tempdir
 
-The directory to store temp files in.  Defaults to $ENV{TEMP} if set and 
+The directory to store temp files in.  Defaults to $ENV{TEMP} if set and
 '/tmp/' if not.
 
 =back
@@ -287,10 +289,10 @@ sub backup {
     local $ENV{PGPASSWORD} = $self->password if $self->password;
     my $tempdir = $args{tempdir} || $ENV{TEMP} || '/tmp';
     $tempdir =~ s|/$||;
-    
+
     my $tempfile = $args{file} || File::Temp->new(
                                       DIR => $tempdir, UNLINK => 0
-                                  )->filename 
+                                  )->filename
                                       || die "could not create temp file: $@, $!";
     my $command = 'pg_dump ' . join(" ", (
                   $self->dbname         ? "-d " . $self->dbname . " "   : '' ,
@@ -310,7 +312,7 @@ sub backup {
 
 =head2 backup_globals
 
-This creates a plain text dump of global (inter-db) objects, such as users 
+This creates a plain text dump of global (inter-db) objects, such as users
 and tablespaces.  It uses pg_dumpall to do this.
 
 Options include:
@@ -323,7 +325,7 @@ File name in the path.
 
 =item tempdir
 
-The directory to store temp files in.  Defaults to $ENV{TEMP} if set and 
+The directory to store temp files in.  Defaults to $ENV{TEMP} if set and
 '/tmp/' if not.
 
 =back
@@ -337,10 +339,10 @@ sub backup_globals {
     local $ENV{PGPASSWORD} = $self->password if $self->password;
     my $tempdir = $args{tempdir} || $ENV{TEMP} || '/tmp';
     $tempdir =~ s|/$||;
-    
+
     my $tempfile = $args{file} || File::Temp->new(
                                       DIR => $tempdir, UNLINK => 0
-                                  )->filename 
+                                  )->filename
                                       || die "could not create temp file: $@, $!";
     my $command = 'pg_dumpall -g ' . join(" ", (
                   $self->username       ? "-U " . $self->username . ' ' : '' ,
@@ -377,7 +379,7 @@ The specified format, for example c for custom.  Defaults to plain text
 Path to combined stderr/stdout log.  If specified, do not specify other logs
 as this is unsupported.
 
-=item errlog 
+=item errlog
 
 Path to error log to store stderr output
 
@@ -393,7 +395,7 @@ sub restore {
     my ($self, %args) = @_;
     croak 'Must specify file' unless $args{file};
 
-    return $self->run_file(%args) 
+    return $self->run_file(%args)
            if not defined $args{format} or $args{format} eq 'p';
 
     local $ENV{PGPASSWORD} = $self->password if $self->password;
@@ -442,7 +444,7 @@ sub drop {
     croak 'No db name of this object' unless $self->dbname;
 
     local $ENV{PGPASSWORD} = $self->password if $self->password;
-    
+
     my $command = "dropdb " . join (" ", (
                   $self->username ? "-U " . $self->username . ' ' : '' ,
                   $self->host     ? "-h " . $self->host . " "     : '' ,
