@@ -1,9 +1,12 @@
 Revision history for PGObject-Util-DBAdmin
 
-0.09.0  2016-12-17
+0.10.0  2016-12-17
         Removed MYMETA.* (rt.cpan.org#109062)
 	Correct spelling errors reported by Robert James Clay (jame@rocasa.ru)
 	Correct copyright years (rt.cpan.org#117202 and #10)
+
+0.09    2016-07-18
+ 	Fixed handling of &'s in db names
 
 0.08    2016-02-11
 	Added ability to pass connection parameters to connect()
