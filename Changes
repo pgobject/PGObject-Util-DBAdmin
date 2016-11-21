@@ -1,5 +1,9 @@
 Revision history for PGObject-Util-DBAdmin
 
+0.100.0 2016-12-17
+        Publish 0.10 as 0.100; CPAN considers 0.09 equal to 0.090, which is
+	higher than 0.10.0 (which is 0.010_000)
+
 0.10.0  2016-12-17
         Removed MYMETA.* (rt.cpan.org#109062)
 	Correct spelling errors reported by Robert James Clay (jame@rocasa.ru)
