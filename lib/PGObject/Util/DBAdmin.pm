@@ -83,6 +83,12 @@ has port => (is => 'ro');
 
 has dbname => (is => 'ro');
 
+sub _dbname_q {
+    my ($self) = @_;
+    return "'" . $self->dbname . "'";
+}
+
+
 =head1 SUBROUTINES/METHODS
 
 =head2 new
@@ -177,7 +183,7 @@ sub create {
                        $args{copy_of}  ? "-T $args{copy_of} "          : '' ,
                        $self->host     ? "-h " . $self->host . " "     : '' ,
                        $self->port     ? "-p " . $self->port . " "     : '' ,
-                       $self->dbname   ? $self->dbname                 : '' )
+                       $self->dbname   ? $self->_dbname_q              : '' )
                   );
     my $stderr = capture_stderr sub{ local ($?, $!);
 				     `$command` };
@@ -241,7 +247,7 @@ sub run_file {
                        ($self->username ? "-U " . $self->username . ' ' : '',
                         $self->host     ? "-h " . $self->host . " "     : '' ,
                         $self->port     ? "-p " . $self->port . " "     : '' ,
-                        $self->dbname ? $self->dbname : ' ' ,
+                        $self->dbname ? $self->_dbname_q : ' ' ,
                         $log)
                   );
     my $stderr = capture_stderr sub {
@@ -295,7 +301,7 @@ sub backup {
                                   )->filename
                                       || die "could not create temp file: $@, $!";
     my $command = 'pg_dump ' . join(" ", (
-                  $self->dbname         ? "-d " . $self->dbname . " "   : '' ,
+                  $self->dbname         ? "-d " . $self->_dbname_q . " "   : '' ,
                   $self->username       ? "-U " . $self->username . ' ' : '' ,
                   $self->host           ? "-h " . $self->host . " "     : '' ,
                   $self->port           ? "-p " . $self->port . " "     : '' ,
@@ -415,7 +421,7 @@ sub restore {
        }
     }
     my $command = 'pg_restore ' . join(' ', (
-                  $self->dbname         ? "-d " . $self->dbname . " "   : '' ,
+                  $self->dbname         ? "-d " . $self->_dbname_q . " "   : '' ,
                   $self->username       ? "-U " . $self->username . ' ' : '' ,
                   $self->host           ? "-h " . $self->host . " "     : '' ,
                   $self->port           ? "-p " . $self->port . " "     : '' ,
@@ -449,7 +455,7 @@ sub drop {
                   $self->username ? "-U " . $self->username . ' ' : '' ,
                   $self->host     ? "-h " . $self->host . " "     : '' ,
                   $self->port     ? "-p " . $self->port . " "     : '' ,
-                  $self->dbname));
+                  $self->_dbname_q));
     my $stderr = capture_stderr { local ($?, $!);
 				  `$command` };
     die $stderr if $stderr =~ /(ERROR|FATAL)/;
