@@ -504,7 +504,7 @@ L<http://search.cpan.org/dist/PGObject-Util-DBAdmin/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2014 Chris Travers.
+Copyright 2014-2016 Chris Travers.
 
 This program is distributed under the (Revised) BSD License:
 L<http://www.opensource.org/licenses/BSD-3-Clause>
