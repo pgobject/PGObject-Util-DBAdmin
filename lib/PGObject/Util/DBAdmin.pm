@@ -207,7 +207,7 @@ Path to error log to store stderr output
 =item stdout_log
 
 
-Path to where to log standard outut
+Path to where to log standard output
 
 =item continue_on_error
 
@@ -385,7 +385,7 @@ Path to error log to store stderr output
 
 =item stdout_log
 
-Path to where to log standard outut
+Path to where to log standard output
 
 =back
 
