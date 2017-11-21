@@ -186,7 +186,7 @@ sub create {
                        $self->dbname   ? $self->_dbname_q              : '' )
                   );
     my $stderr = capture_stderr sub{ local ($?, $!);
-				     `$command` };
+                                     `$command` };
     die $stderr if $stderr;
     return 1;
 }
@@ -251,11 +251,11 @@ sub run_file {
                         $log)
                   );
     my $stderr = capture_stderr sub {
-	local ($?, $!);
-	my $result = `$command`;
-	print STDERR "\nAPPLICATION ERROR\n"
-	    if $? != 0;
-	return $result;
+        local ($?, $!);
+        my $result = `$command`;
+        print STDERR "\nAPPLICATION ERROR\n"
+            if $? != 0;
+        return $result;
     };
 
     print STDERR $stderr;
@@ -308,7 +308,7 @@ sub backup {
                   defined $args{format} ? "-F$args{format} "            : '' ,
                   qq(> "$tempfile" )));
     my $stderr = capture_stderr { local ($?, $!);
-				  `$command` };
+                                  `$command` };
     print STDERR $stderr;
     for my $err (split /\n/, $stderr) {
           die $err if $err =~ /(ERROR|FATAL)/;
@@ -356,7 +356,7 @@ sub backup_globals {
                   $self->port           ? "-p " . $self->port . " "     : '' ,
                   qq(> "$tempfile" )));
     my $stderr = capture_stderr { local ($?, $!);
-				  `$command` };
+                                  `$command` };
     print STDERR $stderr;
     for my $err (split /\n/, $stderr) {
           die $err if $err =~ /(ERROR|FATAL)/;
@@ -428,7 +428,7 @@ sub restore {
                   defined $args{format} ? "-F$args{format}"             : '' ,
                   qq("$args{file}")));
     my $stderr = capture_stderr sub{ local ($?, $!);
-				     `$command` };
+                                     `$command` };
     print STDERR $stderr;
     print ERRLOG $stderr if $errlog;
     close ERRLOG if $errlog;
@@ -457,7 +457,7 @@ sub drop {
                   $self->port     ? "-p " . $self->port . " "     : '' ,
                   $self->_dbname_q));
     my $stderr = capture_stderr { local ($?, $!);
-				  `$command` };
+                                  `$command` };
     die $stderr if $stderr =~ /(ERROR|FATAL)/;
     return 1;
 }
