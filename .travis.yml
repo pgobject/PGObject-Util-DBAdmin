@@ -17,6 +17,12 @@ env:
 before_install:
   - if [[ "$PERLBREW_PERL" == "5.24" ]]; then export COVERAGE=1 ; fi 
   - eval $(curl https://travis-perl.github.io/init) --auto
-script:
-  make && prove -l
 
+before_script:
+  - coverage-setup
+
+script:
+  - make && prove -l
+
+after_success:
+  - coverage-report
