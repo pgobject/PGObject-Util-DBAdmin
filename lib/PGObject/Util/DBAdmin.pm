@@ -123,7 +123,7 @@ sub connect {
         if $self->host;
     $connect .= ';port=' . $self->port
         if $self->port;
-    my $dbh =  DBI->connect('dbi:Pg:' $connect,
+    my $dbh =  DBI->connect('dbi:Pg:' . $connect,
                             $self->username, $self->password,
                             $options)
         or die "Cound not connect to database!";
