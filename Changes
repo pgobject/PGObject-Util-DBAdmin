@@ -4,6 +4,7 @@ Revision history for PGObject-Util-DBAdmin
 0.110.0 2017-11-21
         Correctly invoke 'pg_dump' (it doesn't recognise a '-d' option)
         Remove tabs from sources
+        Fix #1: 'host' and 'port' arguments not used in 'connect()'
 
 0.100.0 2016-12-17
         Publish 0.10 as 0.100; CPAN considers 0.09 equal to 0.090, which is

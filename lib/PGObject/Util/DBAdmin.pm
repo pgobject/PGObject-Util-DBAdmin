@@ -116,7 +116,14 @@ allows specification of options in the $options hashref.
 
 sub connect {
     my ($self, $options) = @_;
-    my $dbh =  DBI->connect('dbi:Pg:dbname=' . $self->dbname,
+
+    my $connect = 'dbname="' . $self->dbname . '"';
+
+    $connect .= ';host=' . $self->host
+        if $self->host;
+    $connect .= ';port=' . $self->port
+        if $self->port;
+    my $dbh =  DBI->connect('dbi:Pg:' $connect,
                             $self->username, $self->password,
                             $options)
         or die "Cound not connect to database!";
