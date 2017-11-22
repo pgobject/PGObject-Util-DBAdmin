@@ -301,11 +301,11 @@ sub backup {
                                   )->filename
                                       || die "could not create temp file: $@, $!";
     my $command = 'pg_dump ' . join(" ", (
-                  $self->dbname         ? "-d " . $self->_dbname_q . " "   : '' ,
                   $self->username       ? "-U " . $self->username . ' ' : '' ,
                   $self->host           ? "-h " . $self->host . " "     : '' ,
                   $self->port           ? "-p " . $self->port . " "     : '' ,
                   defined $args{format} ? "-F$args{format} "            : '' ,
+                  $self->dbname         ? $self->_dbname_q   : '' ,
                   qq(> "$tempfile" )));
     my $stderr = capture_stderr { local ($?, $!);
                                   `$command` };
