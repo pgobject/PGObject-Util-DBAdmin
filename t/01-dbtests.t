@@ -1,8 +1,9 @@
 use Test::More;
+use Test::Exception;
 use PGObject::Util::DBAdmin;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 33;
+plan tests => 50;
 
 # Constructor
 
@@ -21,7 +22,11 @@ ok($db = PGObject::Util::DBAdmin->new(
 
 eval { $db->drop };
 
-ok($db->backup_globals, 'can backup globals');
+my $backup_file;
+ok($backup_file = $db->backup_globals, 'can backup globals');
+ok(-f $backup_file, 'backup_globals output file exists');
+cmp_ok(-s $backup_file, '>', 0, 'backup_globals output file has size > 0');
+unlink $backup_file;
 
 # List dbs
 my @dblist;
@@ -50,27 +55,39 @@ is ($foo->[0], 1, 'Correct count of data') ;
 $dbh->disconnect;
 
 # backup/drop/create/restore, formats undef, p, and c
+foreach my $format ((undef, 'p', 'c')) {
+    my $display_format = $format || 'undef';
 
-no warnings;
-for ((undef, 'p', 'c')) {
     my $backup;
     ok($backup = $db->backup(
-           format => $_,
+           format => $format,
            tempdir => 't/var/',
-       ), 'Made backup, format ' . $_ || 'undef');
-    ok($db->drop, 'dropped db, format ' . $_ || 'undef');
+       ), "Made backup, format $display_format");
+    ok(-f $backup, "backup format $display_format output file exists");
+    cmp_ok(-s $backup, '>', 0, "backup format $display_format output file has size > 0");
+
+    ok($db->drop, "dropped db, format $display_format");
     ok (!(grep{$_ eq 'pgobject_test_db'} @dblist), 
            'DB list does not contain pgobject_test_db');
 
-    ok($db->create, 'created db, format ' . $_ || 'undef');
-    ok($dbh = $db->connect, 'Got dbi handle ' . $_ || 'undef');
+    dies_ok {
+        $db->restore(
+            format => $format,
+            file   => 't/data/does-not-exist',
+        )
+    } "die when restore file does not exist, format $display_format";
+
+    ok($db->create, "created db, format $display_format");
+    ok($dbh = $db->connect, "Got dbi handle, format $display_format");
     ok($db->restore(
-          format => $_,
+          format => $format,
           file   => $backup,
-       ), 'Restored backup, format ' . $_ || 'undef');
+       ), "Restored backup, format $display_format");
+    ok(defined $db->stderr, 'stderr captured during restore');
+    ok(defined $db->stdout, 'stdout captured during restore');
     ok(($foo) = $dbh->selectall_arrayref('select count(*) from test_data'),
-               'Got results from test data count ' . $_ || 'undef');
-    is($foo->[0]->[0], 1, 'correct data count ' . $_ || 'undef');
+               "Got results from test data count, format $display_format");
+    is($foo->[0]->[0], 1, "correct data count, format $display_format");
     $dbh->disconnect;
     unlink $backup;
 }
