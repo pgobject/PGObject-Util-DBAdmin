@@ -364,8 +364,10 @@ sub backup_globals {
                   $self->host           ? "-h " . $self->host . " "     : '' ,
                   $self->port           ? "-p " . $self->port . " "     : '' ,
                   qq(> "$tempfile" )));
-    my $stderr = capture_stderr { local ($?, $!);
-                                  `$command` };
+    my $stderr = capture_stderr {
+        local ($?, $!);
+        system $command and die $!
+    };
     print STDERR $stderr;
     for my $err (split /\n/, $stderr) {
           die $err if $err =~ /(ERROR|FATAL)/;
