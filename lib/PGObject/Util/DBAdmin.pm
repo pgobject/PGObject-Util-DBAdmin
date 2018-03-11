@@ -223,10 +223,6 @@ is set.
 Optional path to where to log standard output. Ignored if log parameter is
 set.
 
-=item continue_on_error
-
-If set, does not die on database error.
-
 =back
 
 =cut
