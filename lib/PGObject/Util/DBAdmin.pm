@@ -425,6 +425,7 @@ sub restore {
        $log = qq( 1>&2 );
        $errlog = 1;
        open(ERRLOG, '>>', $args{log})
+           or croak "Cannot open specified log file for writing $!";
     } else {
        if ($args{stdout_log}){
           $log .= qq(>> "$args{stdout_log}" );
@@ -432,6 +433,7 @@ sub restore {
        if ($args{errlog}){
           $errlog = 1;
           open(ERRLOG, '>>', $args{errlog})
+              or croak "Cannot open specified errlog file for writing $!";
        }
     }
     my $command = 'pg_restore ' . join(' ', (
@@ -441,11 +443,14 @@ sub restore {
                   $self->port           ? "-p " . $self->port . " "     : '' ,
                   defined $args{format} ? "-F$args{format}"             : '' ,
                   qq("$args{file}")));
-    my $stderr = capture_stderr sub{ local ($?, $!);
-                                     `$command` };
+    my $stderr = capture_stderr sub {
+        local ($?, $!);
+        system $command and die "error running pg_restore command $!";
+    };
     print STDERR $stderr;
     print ERRLOG $stderr if $errlog;
-    close ERRLOG if $errlog;
+    close ERRLOG if $errlog
+        or croak "Failed to close log file after writing $!";
     for my $err (split /\n/, $stderr) {
           die $err if $err =~ /(ERROR|FATAL)/;
     }
