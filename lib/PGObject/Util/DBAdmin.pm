@@ -239,6 +239,7 @@ sub run_file {
        $log = qq( 1>&2 );
        $errlog = 1;
        open(ERRLOG, '>>', $args{log})
+           or croak "Cannot open specified log file for writing $!";
     } else {
        if ($args{stdout_log}){
           $log .= qq(>> "$args{stdout_log}" );
@@ -246,6 +247,7 @@ sub run_file {
        if ($args{errlog}){
           $errlog = 1;
           open(ERRLOG, '>>', $args{errlog})
+           or croak "Cannot open specified errlog file for writing $!";
        }
     }
     my $command = qq(psql -f "$args{file}" )
@@ -266,7 +268,8 @@ sub run_file {
 
     print STDERR $stderr;
     print ERRLOG $stderr if $errlog;
-    close ERRLOG if $errlog;
+    close ERRLOG if $errlog
+        or croak "Failed to close log file after writing $!";
     for my $err (split /\n/, $stderr) {
           die $err if $err =~ /(ERROR|FATAL)/;
     }
