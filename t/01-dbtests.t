@@ -3,7 +3,7 @@ use Test::Exception;
 use PGObject::Util::DBAdmin;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 44;
+plan tests => 50;
 
 # Constructor
 
@@ -83,6 +83,8 @@ foreach my $format ((undef, 'p', 'c')) {
           format => $format,
           file   => $backup,
        ), "Restored backup, format $display_format");
+    ok($db->stderr =~ /pg_restore/, 'stderr captured during restore');
+    ok(defined $db->stdout, 'stdout captured during restore');
     ok(($foo) = $dbh->selectall_arrayref('select count(*) from test_data'),
                "Got results from test data count, format $display_format");
     is($foo->[0]->[0], 1, "correct data count, format $display_format");
