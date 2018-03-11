@@ -2,7 +2,7 @@ use Test::More;
 use PGObject::Util::DBAdmin;
 use Test::Exception;
 
-plan tests => 7;
+plan tests => 10;
 
 # These tests do not require a working database connection
 my $db = PGObject::Util::DBAdmin->new(
@@ -54,6 +54,31 @@ dies_ok {
         tempdir => 't/data/an_existing_file'
     )
 } 'backup_globals tempdir is an existing file';
+
+throws_ok {
+    $db->restore(
+        file   => 't/data/an_existing_file',
+        log    => 't/data/an_existing_file/cannot_write',
+        format => 'c',
+    )
+} qr/^Cannot open specified log file for writing/,
+'restore log file is unwriteable';
+
+throws_ok {
+    $db->restore(
+        file   => 't/data/an_existing_file',
+        errlog => 't/data/an_existing_file/cannot_write',
+        format => 'c',
+    )
+} qr/^Cannot open specified errlog file for writing/,
+'restore errlog file is unwriteable';
+
+dies_ok {
+    $db->restore(
+        file   => 't/data/an_existing_file',
+        format => 'AN_INVALID_FORMAT',
+    )
+} 'restore method called with invalid format';
 
 
 
