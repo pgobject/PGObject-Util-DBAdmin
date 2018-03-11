@@ -55,8 +55,6 @@ is ($foo->[0], 1, 'Correct count of data') ;
 $dbh->disconnect;
 
 # backup/drop/create/restore, formats undef, p, and c
-
-#no warnings;
 foreach my $format ((undef, 'p', 'c')) {
     my $display_format = $format || 'undef';
 
@@ -72,12 +70,6 @@ foreach my $format ((undef, 'p', 'c')) {
     ok (!(grep{$_ eq 'pgobject_test_db'} @dblist), 
            'DB list does not contain pgobject_test_db');
 
-    ok($db->create, "created db, format $display_format");
-    ok($dbh = $db->connect, "Got dbi handle, format $display_format");
-    ok($db->restore(
-          format => $format,
-          file   => $backup,
-       ), "Restored backup, format $display_format");
     dies_ok {
         $db->restore(
             format => $format,
@@ -85,6 +77,12 @@ foreach my $format ((undef, 'p', 'c')) {
         )
     } "die when restore file does not exist, format $display_format";
 
+    ok($db->create, "created db, format $display_format");
+    ok($dbh = $db->connect, "Got dbi handle, format $display_format");
+    ok($db->restore(
+          format => $format,
+          file   => $backup,
+       ), "Restored backup, format $display_format");
     ok(($foo) = $dbh->selectall_arrayref('select count(*) from test_data'),
                "Got results from test data count, format $display_format");
     is($foo->[0]->[0], 1, "correct data count, format $display_format");
