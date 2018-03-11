@@ -470,8 +470,10 @@ sub drop {
                   $self->host     ? "-h " . $self->host . " "     : '' ,
                   $self->port     ? "-p " . $self->port . " "     : '' ,
                   $self->_dbname_q));
-    my $stderr = capture_stderr { local ($?, $!);
-                                  `$command` };
+    my $stderr = capture_stderr {
+        local ($?, $!);
+        system $command and die;
+    };
     die $stderr if $stderr =~ /(ERROR|FATAL)/;
     return 1;
 }
