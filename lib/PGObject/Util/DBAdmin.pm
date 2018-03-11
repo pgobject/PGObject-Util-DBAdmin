@@ -98,7 +98,7 @@ Creates a new db admin object for manipulating databases.
 =head2 export
 
 Exports the database parameters in a hash so it can be used to create another
-pbject.
+object.
 
 =cut
 
