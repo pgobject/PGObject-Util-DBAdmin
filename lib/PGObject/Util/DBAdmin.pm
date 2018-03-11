@@ -192,8 +192,10 @@ sub create {
                        $self->port     ? "-p " . $self->port . " "     : '' ,
                        $self->dbname   ? $self->_dbname_q              : '' )
                   );
-    my $stderr = capture_stderr sub{ local ($?, $!);
-                                     `$command` };
+    my $stderr = capture_stderr {
+        local ($?, $!);
+        system $command and croak "error running createdb command $!";
+    };
     die $stderr if $stderr;
     return 1;
 }
