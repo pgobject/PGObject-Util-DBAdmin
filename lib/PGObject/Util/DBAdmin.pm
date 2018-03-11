@@ -126,7 +126,7 @@ sub connect {
     my $dbh =  DBI->connect('dbi:Pg:' . $connect,
                             $self->username, $self->password,
                             $options)
-        or die "Cound not connect to database!";
+        or die "Could not connect to database!";
     return $dbh;
 
 }
