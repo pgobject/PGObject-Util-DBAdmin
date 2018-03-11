@@ -83,11 +83,6 @@ has port => (is => 'ro');
 
 has dbname => (is => 'ro');
 
-sub _dbname_q {
-    my ($self) = @_;
-    return "'" . $self->dbname . "'";
-}
-
 =head2 stderr
 
 When applicable, the stderr output captured from any external commands (for
@@ -107,12 +102,30 @@ example createdb or pg_restore) run during the previous method call.
 has stdout => (is => 'ro');
 
 
+sub _dbname_q {
+    my ($self) = @_;
+    return "'" . $self->dbname . "'";
+}
 
 
+sub _run_command {
+    my ($self, @command) = @_;
 
+    my $exit_code;
+    ($self->{stdout}, $self->{stderr}, $exit_code) = capture {
+        system @command;
+    };
 
+    if($exit_code != 0) {
+        croak "error running command";
+    }
 
+    for my $err (split /\n/, $self->{stderr}) {
+        croak $err if $err =~ /(ERROR|FATAL)/;
+    }
 
+    return 1;
+}
 
 
 =head1 SUBROUTINES/METHODS
@@ -224,30 +237,24 @@ sub create {
     return 1;
 }
 
+
 =head2 run_file
 
-Run the specified file on the db.  Accepted parameters are:
+Run the specified file on the db.
+
+After calling this method, STDOUT and STDERR output from the external
+utility which runs the file on the database are available as properties
+$db->stdout and $db->stderr respectively.
+
+Croaks on error. Returns true on success.
+
+Recognized arguments are:
 
 =over
 
 =item file
 
-Path to file to be run.
-
-=item log
-
-Optional path to combined stderr/stdout log.  If specified, do not specify other
-logs as this is unsupported.
-
-=item errlog
-
-Optional path to error log to store stderr output. Ignored if log parameter
-is set.
-
-=item stdout_log
-
-Optional path to where to log standard output. Ignored if log parameter is
-set.
+Path to file to be run. This is a mandatory argument.
 
 =back
 
@@ -255,47 +262,24 @@ set.
 
 sub run_file {
     my ($self, %args) = @_;
-    croak 'Must specify file' unless $args{file};
-    local $ENV{PGPASSWORD} = $self->password if $self->password;
-    my $log = '';
-    my $errlog = 0;
-    if ($args{log}){
-       $log = qq( 1>&2 );
-       $errlog = 1;
-       open(ERRLOG, '>>', $args{log})
-    } else {
-       if ($args{stdout_log}){
-          $log .= qq(>> "$args{stdout_log}" );
-       }
-       if ($args{errlog}){
-          $errlog = 1;
-          open(ERRLOG, '>>', $args{errlog})
-       }
-    }
-    my $command = qq(psql -f "$args{file}" )
-                  . join(' ',
-                       ($self->username ? "-U " . $self->username . ' ' : '',
-                        $self->host     ? "-h " . $self->host . " "     : '' ,
-                        $self->port     ? "-p " . $self->port . " "     : '' ,
-                        $self->dbname ? $self->_dbname_q : ' ' ,
-                        $log)
-                  );
-    my $stderr = capture_stderr sub {
-        local ($?, $!);
-        my $result = `$command`;
-        print STDERR "\nAPPLICATION ERROR\n"
-            if $? != 0;
-        return $result;
-    };
+    $self->{stderr} = undef;
+    $self->{stdout} = undef;
 
-    print STDERR $stderr;
-    print ERRLOG $stderr if $errlog;
-    close ERRLOG if $errlog;
-    for my $err (split /\n/, $stderr) {
-          die $err if $err =~ /(ERROR|FATAL)/;
-    }
-    return 1;
+    croak 'Must specify file' unless defined $args{file};
+    croak 'Specified file does not exist' unless -e $args{file};
+
+    local $ENV{PGPASSWORD} = $self->password if defined $self->password;
+
+    # Build command
+    my @command = ('psql', '-f', $args{file});
+    $self->username and push(@command, "-U", $self->username);
+    $self->host     and push(@command, "-h", $self->host);
+    $self->port     and push(@command, "-p", $self->port);
+    $self->dbname   and push(@command, $self->dbname);
+
+    return $self->_run_command(@command);
 }
+
 
 =head2 backup
 
@@ -408,7 +392,7 @@ sub backup_globals {
 Restores from a saved file.  Must pass in the file name as a named argument.
 
 After calling this method, STDOUT and STDERR output from the external
-pg_restore utility are available as properties $db->stdout and $db->stderr
+restore utility are available as properties $db->stdout and $db->stderr
 respectively.
 
 Croaks on error. Returns true on success.
@@ -431,7 +415,10 @@ The file format, for example c for custom.  Defaults to plain text.
 
 sub restore {
     my ($self, %args) = @_;
-    croak 'Must specify file' unless $args{file};
+    $self->{stderr} = undef;
+    $self->{stdout} = undef;
+
+    croak 'Must specify file' unless defined $args{file};
     croak 'Specified file does not exist' unless -e $args{file};
 
     return $self->run_file(%args)
@@ -448,20 +435,7 @@ sub restore {
     defined $args{format} and push(@command, "-F$args{format}");
     push(@command, $args{file});
 
-    my $exit_code;
-    ($self->{stdout}, $self->{stderr}, $exit_code) = capture {
-        system @command;
-    };
-
-    if($exit_code != 0) {
-        croak "error running pg_restore command";
-    }
-
-    for my $err (split /\n/, $self->{stderr}) {
-        croak $err if $err =~ /(ERROR|FATAL)/;
-    }
-
-    return 1;
+    return $self->_run_command(@command);
 }
 
 
