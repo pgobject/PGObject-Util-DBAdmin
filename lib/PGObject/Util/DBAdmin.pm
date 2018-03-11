@@ -338,12 +338,12 @@ Options include:
 
 =item file
 
-File name in the path.
+Full path of the file to which the backup will be written.
 
 =item tempdir
 
 The directory to store temp files in.  Defaults to $ENV{TEMP} if set and
-'/tmp/' if not.
+'/tmp/' if not. Ignored if file paramter is given.
 
 =back
 
