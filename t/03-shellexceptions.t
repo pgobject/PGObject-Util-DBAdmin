@@ -26,9 +26,9 @@ dies_ok {
 
 dies_ok {
     $db->backup(
-        file => 't/data/an_existing_file'
+        file => 't/data/an_existing_file/cannot_write'
     )
-} 'backup db would overwrite an existing file';
+} 'backup db cannot write to specified file';
 
 dies_ok {
     $db->backup(
