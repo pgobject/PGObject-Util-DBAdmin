@@ -440,7 +440,7 @@ sub restore {
     local $ENV{PGPASSWORD} = $self->password if defined $self->password;
 
     # Build command options
-    my @command = ('pg_restore');
+    my @command = ('pg_restore', '--verbose');
     $self->dbname   and push(@command, "-d", $self->dbname);
     $self->username and push(@command, "-U", $self->username);
     $self->host     and push(@command, "-h", $self->host);
