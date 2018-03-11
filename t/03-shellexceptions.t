@@ -2,7 +2,7 @@ use Test::More;
 use PGObject::Util::DBAdmin;
 use Test::Exception;
 
-plan tests => 4;
+plan tests => 7;
 
 # These tests do not require a working database connection
 my $db = PGObject::Util::DBAdmin->new(
@@ -35,3 +35,26 @@ dies_ok {
         tempdir => 't/data/an_existing_file'
     )
 } 'backup db tempdir is an existing file';
+
+
+dies_ok {
+    $db->backup_globals(
+        tempdir => 'This_directory_does_not_exist'
+    )
+} 'backup_globals with non-existent tempdir';
+
+dies_ok {
+    $db->backup_globals(
+        file => 't/data/an_existing_file/cannot_write'
+    )
+} 'backup_globals cannot write to specified file';
+
+dies_ok {
+    $db->backup_globals(
+        tempdir => 't/data/an_existing_file'
+    )
+} 'backup_globals tempdir is an existing file';
+
+
+
+
