@@ -98,7 +98,7 @@ Creates a new db admin object for manipulating databases.
 =head2 export
 
 Exports the database parameters in a hash so it can be used to create another
-pbject.
+object.
 
 =cut
 
@@ -126,7 +126,7 @@ sub connect {
     my $dbh =  DBI->connect('dbi:Pg:' . $connect,
                             $self->username, $self->password,
                             $options)
-        or die "Cound not connect to database!";
+        or die "Could not connect to database!";
     return $dbh;
 
 }
@@ -206,25 +206,26 @@ Run the specified file on the db.  Accepted parameters are:
 
 =item file
 
-Path to file to be run
+Path to file to be run.
 
 =item log
 
-Path to combined stderr/stdout log.  If specified, do not specify other logs
-as this is unsupported.
+Optional path to combined stderr/stdout log.  If specified, do not specify other
+logs as this is unsupported.
 
 =item errlog
 
-Path to error log to store stderr output
+Optional path to error log to store stderr output. Ignored if log parameter
+is set.
 
 =item stdout_log
 
-
-Path to where to log standard output
+Optional path to where to log standard output. Ignored if log parameter is
+set.
 
 =item continue_on_error
 
-If set, does not die on error.
+If set, does not die on database error.
 
 =back
 
@@ -284,12 +285,16 @@ Accepted parameters include:
 
 =item format
 
-The specified format, for example c for custom.  Defaults to plain text
+The specified format, for example c for custom.  Defaults to plain text.
+
+=item file
+
+Full path of the file to which the backup will be written.
 
 =item tempdir
 
 The directory to store temp files in.  Defaults to $ENV{TEMP} if set and
-'/tmp/' if not.
+'/tmp/' if not. Ignored if file paramter is given.
 
 =back
 
@@ -334,12 +339,12 @@ Options include:
 
 =item file
 
-File name in the path.
+Full path of the file to which the backup will be written.
 
 =item tempdir
 
 The directory to store temp files in.  Defaults to $ENV{TEMP} if set and
-'/tmp/' if not.
+'/tmp/' if not. Ignored if file paramter is given.
 
 =back
 
@@ -389,16 +394,18 @@ The specified format, for example c for custom.  Defaults to plain text
 
 =item log
 
-Path to combined stderr/stdout log.  If specified, do not specify other logs
+Optional path to combined stderr/stdout log.  If specified, do not specify other logs
 as this is unsupported.
 
 =item errlog
 
-Path to error log to store stderr output
+Optional path to error log to store stderr output. Ignored if log parameter
+is set.
 
 =item stdout_log
 
-Path to where to log standard output
+Optional path to where to log standard output. Ignored if log parameter is
+set.
 
 =back
 
