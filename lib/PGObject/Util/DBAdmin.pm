@@ -393,16 +393,18 @@ The specified format, for example c for custom.  Defaults to plain text
 
 =item log
 
-Path to combined stderr/stdout log.  If specified, do not specify other logs
+Optional path to combined stderr/stdout log.  If specified, do not specify other logs
 as this is unsupported.
 
 =item errlog
 
-Path to error log to store stderr output
+Optional path to error log to store stderr output. Ignored if log parameter
+is set.
 
 =item stdout_log
 
-Path to where to log standard output
+Optional path to where to log standard output. Ignored if log parameter is
+set.
 
 =back
 
