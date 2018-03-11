@@ -206,25 +206,26 @@ Run the specified file on the db.  Accepted parameters are:
 
 =item file
 
-Path to file to be run
+Path to file to be run.
 
 =item log
 
-Path to combined stderr/stdout log.  If specified, do not specify other logs
-as this is unsupported.
+Optional path to combined stderr/stdout log.  If specified, do not specify other
+logs as this is unsupported.
 
 =item errlog
 
-Path to error log to store stderr output
+Optional path to error log to store stderr output. Ignored if log parameter
+is set.
 
 =item stdout_log
 
-
-Path to where to log standard output
+Optional path to where to log standard output. Ignored if log parameter is
+set.
 
 =item continue_on_error
 
-If set, does not die on error.
+If set, does not die on database error.
 
 =back
 
