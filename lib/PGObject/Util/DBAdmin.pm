@@ -267,8 +267,8 @@ sub run_file {
     };
 
     print STDERR $stderr;
-    print ERRLOG $stderr if $errlog;
     if($errlog) {
+        print ERRLOG $stderr;
         close ERRLOG or croak "Failed to close log file after writing $!";
     }
     for my $err (split /\n/, $stderr) {
@@ -454,8 +454,8 @@ sub restore {
         system $command and die "error running pg_restore command $!";
     };
     print STDERR $stderr;
-    print ERRLOG $stderr if $errlog;
     if($errlog) {
+        print ERRLOG $stderr;
         close ERRLOG or croak "Failed to close log file after writing $!";
     }
     for my $err (split /\n/, $stderr) {
