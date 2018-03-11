@@ -192,8 +192,10 @@ sub create {
                        $self->port     ? "-p " . $self->port . " "     : '' ,
                        $self->dbname   ? $self->_dbname_q              : '' )
                   );
-    my $stderr = capture_stderr sub{ local ($?, $!);
-                                     `$command` };
+    my $stderr = capture_stderr {
+        local ($?, $!);
+        system $command and croak "error running createdb command $!";
+    };
     die $stderr if $stderr;
     return 1;
 }
@@ -237,6 +239,7 @@ sub run_file {
        $log = qq( 1>&2 );
        $errlog = 1;
        open(ERRLOG, '>>', $args{log})
+           or croak "Cannot open specified log file for writing $!";
     } else {
        if ($args{stdout_log}){
           $log .= qq(>> "$args{stdout_log}" );
@@ -244,6 +247,7 @@ sub run_file {
        if ($args{errlog}){
           $errlog = 1;
           open(ERRLOG, '>>', $args{errlog})
+           or croak "Cannot open specified errlog file for writing $!";
        }
     }
     my $command = qq(psql -f "$args{file}" )
@@ -263,8 +267,10 @@ sub run_file {
     };
 
     print STDERR $stderr;
-    print ERRLOG $stderr if $errlog;
-    close ERRLOG if $errlog;
+    if($errlog) {
+        print ERRLOG $stderr;
+        close ERRLOG or croak "Failed to close log file after writing $!";
+    }
     for my $err (split /\n/, $stderr) {
           die $err if $err =~ /(ERROR|FATAL)/;
     }
@@ -425,6 +431,7 @@ sub restore {
        $log = qq( 1>&2 );
        $errlog = 1;
        open(ERRLOG, '>>', $args{log})
+           or croak "Cannot open specified log file for writing $!";
     } else {
        if ($args{stdout_log}){
           $log .= qq(>> "$args{stdout_log}" );
@@ -432,6 +439,7 @@ sub restore {
        if ($args{errlog}){
           $errlog = 1;
           open(ERRLOG, '>>', $args{errlog})
+              or croak "Cannot open specified errlog file for writing $!";
        }
     }
     my $command = 'pg_restore ' . join(' ', (
@@ -441,11 +449,15 @@ sub restore {
                   $self->port           ? "-p " . $self->port . " "     : '' ,
                   defined $args{format} ? "-F$args{format}"             : '' ,
                   qq("$args{file}")));
-    my $stderr = capture_stderr sub{ local ($?, $!);
-                                     `$command` };
+    my $stderr = capture_stderr sub {
+        local ($?, $!);
+        system $command and die "error running pg_restore command $!";
+    };
     print STDERR $stderr;
-    print ERRLOG $stderr if $errlog;
-    close ERRLOG if $errlog;
+    if($errlog) {
+        print ERRLOG $stderr;
+        close ERRLOG or croak "Failed to close log file after writing $!";
+    }
     for my $err (split /\n/, $stderr) {
           die $err if $err =~ /(ERROR|FATAL)/;
     }
@@ -470,8 +482,10 @@ sub drop {
                   $self->host     ? "-h " . $self->host . " "     : '' ,
                   $self->port     ? "-p " . $self->port . " "     : '' ,
                   $self->_dbname_q));
-    my $stderr = capture_stderr { local ($?, $!);
-                                  `$command` };
+    my $stderr = capture_stderr {
+        local ($?, $!);
+        system $command and die;
+    };
     die $stderr if $stderr =~ /(ERROR|FATAL)/;
     return 1;
 }
