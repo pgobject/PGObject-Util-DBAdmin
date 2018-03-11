@@ -284,12 +284,16 @@ Accepted parameters include:
 
 =item format
 
-The specified format, for example c for custom.  Defaults to plain text
+The specified format, for example c for custom.  Defaults to plain text.
+
+=item file
+
+Full path of the file to which the backup will be written.
 
 =item tempdir
 
 The directory to store temp files in.  Defaults to $ENV{TEMP} if set and
-'/tmp/' if not.
+'/tmp/' if not. Ignored if file paramter is given.
 
 =back
 
