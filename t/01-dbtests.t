@@ -83,7 +83,7 @@ foreach my $format ((undef, 'p', 'c')) {
           format => $format,
           file   => $backup,
        ), "Restored backup, format $display_format");
-    ok($db->stderr =~ /pg_restore/, 'stderr captured during restore');
+    ok(defined $db->stderr, 'stderr captured during restore');
     ok(defined $db->stdout, 'stdout captured during restore');
     ok(($foo) = $dbh->selectall_arrayref('select count(*) from test_data'),
                "Got results from test data count, format $display_format");
