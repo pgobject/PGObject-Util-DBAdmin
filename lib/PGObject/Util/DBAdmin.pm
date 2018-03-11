@@ -268,8 +268,9 @@ sub run_file {
 
     print STDERR $stderr;
     print ERRLOG $stderr if $errlog;
-    close ERRLOG if $errlog
-        or croak "Failed to close log file after writing $!";
+    if($errlog) {
+        close ERRLOG or croak "Failed to close log file after writing $!";
+    }
     for my $err (split /\n/, $stderr) {
           die $err if $err =~ /(ERROR|FATAL)/;
     }
@@ -454,8 +455,9 @@ sub restore {
     };
     print STDERR $stderr;
     print ERRLOG $stderr if $errlog;
-    close ERRLOG if $errlog
-        or croak "Failed to close log file after writing $!";
+    if($errlog) {
+        close ERRLOG or croak "Failed to close log file after writing $!";
+    }
     for my $err (split /\n/, $stderr) {
           die $err if $err =~ /(ERROR|FATAL)/;
     }
