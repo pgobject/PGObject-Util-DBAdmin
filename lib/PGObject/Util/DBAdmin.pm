@@ -223,20 +223,15 @@ sub create {
     my %args = @_;
 
     local $ENV{PGPASSWORD} = $self->password if $self->password;
-    my $command = "createdb "
-                  . join (' ', (
-                       $self->username ? "-U " . $self->username . ' ' : '' ,
-                       $args{copy_of}  ? "-T $args{copy_of} "          : '' ,
-                       $self->host     ? "-h " . $self->host . " "     : '' ,
-                       $self->port     ? "-p " . $self->port . " "     : '' ,
-                       $self->dbname   ? $self->_dbname_q              : '' )
-                  );
-    my $stderr = capture_stderr {
-        local ($?, $!);
-        system $command and croak "error running createdb command $!";
-    };
-    die $stderr if $stderr;
-    return 1;
+
+    my @command = ('createdb');
+    $self->username and push(@command, '-U', $self->username);
+    $args{copy_of}  and push(@command, '-T', $args{copy_of});
+    $self->host     and push(@command, '-h', $self->host);
+    $self->port     and push(@command, '-p', $self->port);
+    $self->dbname   and push(@command, $self->dbname);
+
+    return $self->_run_command(@command);
 }
 
 
@@ -337,6 +332,7 @@ sub backup {
     }
     return $tempfile;
 }
+
 
 =head2 backup_globals
 
@@ -454,18 +450,15 @@ sub drop {
 
     local $ENV{PGPASSWORD} = $self->password if $self->password;
 
-    my $command = "dropdb " . join (" ", (
-                  $self->username ? "-U " . $self->username . ' ' : '' ,
-                  $self->host     ? "-h " . $self->host . " "     : '' ,
-                  $self->port     ? "-p " . $self->port . " "     : '' ,
-                  $self->_dbname_q));
-    my $stderr = capture_stderr {
-        local ($?, $!);
-        system $command and die;
-    };
-    die $stderr if $stderr =~ /(ERROR|FATAL)/;
-    return 1;
+    my @command = ('dropdb');
+    $self->username and push(@command, '-U', $self->username);
+    $self->host     and push(@command, '-h', $self->host);
+    $self->port     and push(@command, '-p', $self->port);
+    push(@command, $self->dbname);
+
+    return $self->_run_command(@command);
 }
+
 
 =head1 AUTHOR
 
