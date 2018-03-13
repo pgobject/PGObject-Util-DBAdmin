@@ -102,12 +102,6 @@ example createdb or pg_restore) run during the previous method call.
 has stdout => (is => 'ro');
 
 
-sub _dbname_q {
-    my ($self) = @_;
-    return "'" . $self->dbname . "'";
-}
-
-
 sub _run_command {
     my ($self, @command) = @_;
 
