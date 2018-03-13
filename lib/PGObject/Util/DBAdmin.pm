@@ -1,6 +1,6 @@
 package PGObject::Util::DBAdmin;
 
-use 5.008;
+use 5.010; # Uses // defined-or operator
 use strict;
 use warnings FATAL => 'all';
 
@@ -126,6 +126,53 @@ sub _run_command {
 
     return 1;
 }
+
+
+sub _run_command_to_file {
+    my ($self, $output_fh, @command) = @_;
+
+    my $exit_code;
+    (undef, $self->{stderr}, $exit_code) = capture {
+        system @command;
+    } stdout => $output_fh;
+
+    if($exit_code != 0) {
+        croak "error running command";
+    }
+
+    for my $err (split /\n/, $self->{stderr}) {
+        croak $err if $err =~ /(ERROR|FATAL)/;
+    }
+
+    close $output_fh or croak "Failed to close output file after writing $!";
+
+    return $output_fh->filename;
+}
+
+
+sub _open_temp_filehandle {
+    my ($self, %args) = @_;
+
+    # If caller has supplied a file path, use that
+    # rather than generating our own temp file.
+    if(defined $args{file}) {
+        open(my $fh, '>', $args{file})
+            or croak "couldn't open file $args{file} for writing $!";
+        return $fh;
+    }
+
+    my $tempdir = $args{tempdir} // $ENV{TEMP} // '/tmp';
+    $tempdir =~ s|/$||;
+    -d $tempdir or croak "directory $tempdir does not exist or is not a directory";
+
+    my $fh = File::Temp->new(
+        DIR => $tempdir,
+        UNLINK => 0
+    ) or die "could not create temp file: $@, $!";
+
+    return $fh;
+}
+
 
 
 =head1 SUBROUTINES/METHODS
@@ -280,9 +327,12 @@ sub run_file {
 
 =head2 backup
 
-Takes a backup and delivers the temporary file name to the handler.
+Writes a database backup to a file.
 
-Accepted parameters include:
+Croaks on error. Returns the full path of the file containining the
+backup.
+
+Accepted parameters:
 
 =over
 
@@ -292,45 +342,37 @@ The specified format, for example c for custom.  Defaults to plain text.
 
 =item file
 
-Full path of the file to which the backup will be written.
+Full path of the file to which the backup will be written. If not
+specified, a file will be created using File::Temp.
 
 =item tempdir
 
 The directory to store temp files in.  Defaults to $ENV{TEMP} if set and
-'/tmp/' if not. Ignored if file paramter is given.
+'/tmp' if not. Ignored if file paramter is given.
 
 =back
-
-Returns the file name of the tempfile.
 
 =cut
 
 sub backup {
     my ($self, %args) = @_;
-    local $ENV{PGPASSWORD} = $self->password if $self->password;
-    my $tempdir = $args{tempdir} || $ENV{TEMP} || '/tmp';
-    $tempdir =~ s|/$||;
+    $self->{stderr} = undef;
+    $self->{stdout} = undef;
 
-    my $tempfile = $args{file} || File::Temp->new(
-                                      DIR => $tempdir, UNLINK => 0
-                                  )->filename
-                                      || die "could not create temp file: $@, $!";
-    my $command = 'pg_dump ' . join(" ", (
-                  $self->username       ? "-U " . $self->username . ' ' : '' ,
-                  $self->host           ? "-h " . $self->host . " "     : '' ,
-                  $self->port           ? "-p " . $self->port . " "     : '' ,
-                  defined $args{format} ? "-F$args{format} "            : '' ,
-                  $self->dbname         ? $self->_dbname_q   : '' ,
-                  qq(> "$tempfile" )));
-    my $stderr = capture_stderr {
-        local ($?, $!);
-        system $command and die $!;
-    };
-    print STDERR $stderr;
-    for my $err (split /\n/, $stderr) {
-          die $err if $err =~ /(ERROR|FATAL)/;
-    }
-    return $tempfile;
+    local $ENV{PGPASSWORD} = $self->password if defined $self->password;
+    my $output_fh = $self->_open_temp_filehandle(%args);
+
+    my @command = ('pg_dump', '--verbose');
+    $self->username and push(@command, "-U", $self->username);
+    $self->host     and push(@command, "-h", $self->host);
+    $self->port     and push(@command, "-p", $self->port);
+    defined $args{format} and push(@command, "-F$args{format}");
+    $self->dbname   and push(@command, $self->dbname);
+
+    return $self->_run_command_to_file(
+        $output_fh,
+        @command
+    );
 }
 
 
