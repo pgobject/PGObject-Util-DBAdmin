@@ -327,10 +327,14 @@ sub run_file {
 
 =head2 backup
 
-Writes a database backup to a file.
+Creates a database backup file.
 
-Croaks on error. Returns the full path of the file containining the
-backup.
+After calling this method, STDERR output from the external pg_dump
+utility is available as property $db->stderr.
+
+Croaks on error.
+
+Returns the full path of the file containining the backup.
 
 Accepted parameters:
 
@@ -378,16 +382,23 @@ sub backup {
 
 =head2 backup_globals
 
-This creates a plain text dump of global (inter-db) objects, such as users
-and tablespaces.  It uses pg_dumpall to do this.
+This creates a file containing a plain text dump of global (inter-db)
+objects, such as users and tablespaces.  It uses pg_dumpall to do this.
 
-Options include:
+Being a plain text file, it can be restored using the run_file method.
+
+Croaks on error.
+
+Returns the full path of the file containining the backup.
+
+Accepted parameters:
 
 =over
 
 =item file
 
-Full path of the file to which the backup will be written.
+Full path of the file to which the backup will be written. If not
+specified, a file will be created using File::Temp.
 
 =item tempdir
 
@@ -396,34 +407,25 @@ The directory to store temp files in.  Defaults to $ENV{TEMP} if set and
 
 =back
 
-Being a plain text file, it can be run using the run_file api.
-
 =cut
 
 sub backup_globals {
     my ($self, %args) = @_;
-    local $ENV{PGPASSWORD} = $self->password if $self->password;
-    my $tempdir = $args{tempdir} || $ENV{TEMP} || '/tmp';
-    $tempdir =~ s|/$||;
+    $self->{stderr} = undef;
+    $self->{stdout} = undef;
 
-    my $tempfile = $args{file} || File::Temp->new(
-                                      DIR => $tempdir, UNLINK => 0
-                                  )->filename
-                                      || die "could not create temp file: $@, $!";
-    my $command = 'pg_dumpall -g ' . join(" ", (
-                  $self->username       ? "-U " . $self->username . ' ' : '' ,
-                  $self->host           ? "-h " . $self->host . " "     : '' ,
-                  $self->port           ? "-p " . $self->port . " "     : '' ,
-                  qq(> "$tempfile" )));
-    my $stderr = capture_stderr {
-        local ($?, $!);
-        system $command and die $!
-    };
-    print STDERR $stderr;
-    for my $err (split /\n/, $stderr) {
-          die $err if $err =~ /(ERROR|FATAL)/;
-    }
-    return $tempfile;
+    local $ENV{PGPASSWORD} = $self->password if defined $self->password;
+    my $output_fh = $self->_open_temp_filehandle(%args);
+
+    my @command = ('pg_dumpall', '-g');
+    $self->username and push(@command, '-U', $self->username);
+    $self->host     and push(@command, '-h', $self->host);
+    $self->port     and push(@command, '-p', $self->port);
+
+    return $self->_run_command_to_file(
+        $output_fh,
+        @command
+    );
 }
 
 
