@@ -4,7 +4,7 @@ use PGObject::Util::DBAdmin;
 use File::Temp;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 57;
+plan tests => 69;
 
 # Constructor
 
@@ -73,12 +73,23 @@ $dbh->disconnect;
 foreach my $format ((undef, 'p', 'c')) {
     my $display_format = $format || 'undef';
 
-    my $backup;
+    # Test backing up to specified file
+    my $backup = File::Temp->new->filename;
+    ok($backup = $db->backup(
+           format => $format,
+           file   => $backup,
+    ), "Made backup to specified file, format $display_format");
+    ok($backup =~ m|^$backup$|, 'backup respects file parameter');
+    ok(-f $backup, "backup format $display_format output file exists");
+    cmp_ok(-s $backup, '>', 0, "backup format $display_format output file has size > 0");
+    undef $backup;
+
+    # Test backing up to auto-generated temp file
     ok($backup = $db->backup(
            format => $format,
            tempdir => 't/var/',
        ), "Made backup, format $display_format");
-    ok($backup =~ m|^t/var/|, 'backup file respects tempdir parameter');
+    ok($backup =~ m|^t/var/|, 'backup respects tempdir parameter');
     ok(-f $backup, "backup format $display_format output file exists");
     cmp_ok(-s $backup, '>', 0, "backup format $display_format output file has size > 0");
 
