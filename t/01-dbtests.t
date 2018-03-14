@@ -1,9 +1,10 @@
 use Test::More;
 use Test::Exception;
 use PGObject::Util::DBAdmin;
+use File::Temp;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 54;
+plan tests => 57;
 
 # Constructor
 
@@ -22,6 +23,7 @@ ok($db = PGObject::Util::DBAdmin->new(
 
 eval { $db->drop };
 
+# Test backup_globals to auto-generated temp file
 my $backup_file;
 ok($backup_file = $db->backup_globals(
     tempdir => 't/var/',
@@ -30,6 +32,16 @@ ok(-f $backup_file, 'backup_globals output file exists');
 ok($backup_file =~ m|^t/var/|, 'backup file respects tempdir parameter');
 cmp_ok(-s $backup_file, '>', 0, 'backup_globals output file has size > 0');
 unlink $backup_file;
+
+# Test backup_globals to specified file
+$backup_file = File::Temp->new->filename;
+ok($backup_file = $db->backup_globals(
+    file => $backup_file,
+), 'can backup globals to specified file');
+ok(-f $backup_file, 'specified backup_globals output file exists');
+cmp_ok(-s $backup_file, '>', 0, 'specified backup_globals output file has size > 0');
+undef $backup_file;
+
 
 # List dbs
 my @dblist;
