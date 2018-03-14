@@ -1,10 +1,13 @@
+use warnings;
+use strict;
+
 use Test::More;
 use Test::Exception;
 use PGObject::Util::DBAdmin;
 use File::Temp;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 70;
+plan tests => 78;
 
 # Constructor
 
@@ -59,9 +62,24 @@ ok($db->server_version, 'Got a server version');
 
 ok (grep {$_ eq 'pgobject_test_db'} $db->list_dbs, 'DB list does contain pgobject_test_db after create call');
 
-# load with schema
-
-ok ($db->run_file(file => 't/data/schema.sql'), 'Loaded schema');
+# load with schema - valid sql
+my $stdout_log = File::Temp->new->filename;
+my $stderr_log = File::Temp->new->filename;
+ok($db->run_file(
+    file => 't/data/schema.sql',
+    stdout_log => $stdout_log,
+    errlog => $stderr_log, 
+), 'Loaded schema');
+ok(-f $stdout_log, 'run_file stdout_log file written');
+ok(-f $stderr_log, 'run_file errlog file written');
+cmp_ok(-s $stdout_log, '>', 0, 'run_file stdout_log file has size > 0 for valid sql');
+cmp_ok(-s $stderr_log, '==', 0, 'run_file errlog file has size == 0 for valid sql');
+ok(defined $db->stdout, 'after run_file stdout property is defined');
+cmp_ok(length $db->stdout, '>', 0, 'after run_file, stdout property has length > 0');
+ok(defined $db->stderr, 'after run_file stderr property is defined');
+cmp_ok(length $db->stderr, '==', 0, 'after run_file, stderr property has length == 0 for valid sql');
+undef $stdout_log;
+undef $stderr_log;
 
 ok ($dbh = $db->connect, 'Got dbi handle');
 
