@@ -3,7 +3,7 @@ use Test::Exception;
 use PGObject::Util::DBAdmin;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 50;
+plan tests => 53;
 
 # Constructor
 
@@ -63,6 +63,7 @@ foreach my $format ((undef, 'p', 'c')) {
            format => $format,
            tempdir => 't/var/',
        ), "Made backup, format $display_format");
+    ok($backup =~ m|^t/var/|, 'backup file respects tempdir parameter');
     ok(-f $backup, "backup format $display_format output file exists");
     cmp_ok(-s $backup, '>', 0, "backup format $display_format output file has size > 0");
 
