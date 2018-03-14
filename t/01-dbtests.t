@@ -3,7 +3,7 @@ use Test::Exception;
 use PGObject::Util::DBAdmin;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 53;
+plan tests => 54;
 
 # Constructor
 
@@ -23,8 +23,11 @@ ok($db = PGObject::Util::DBAdmin->new(
 eval { $db->drop };
 
 my $backup_file;
-ok($backup_file = $db->backup_globals, 'can backup globals');
+ok($backup_file = $db->backup_globals(
+    tempdir => 't/var/',
+), 'can backup globals');
 ok(-f $backup_file, 'backup_globals output file exists');
+ok($backup_file =~ m|^t/var/|, 'backup file respects tempdir parameter');
 cmp_ok(-s $backup_file, '>', 0, 'backup_globals output file has size > 0');
 unlink $backup_file;
 
