@@ -1,3 +1,5 @@
+use warnings;
+use strict;
 use Test::More;
 use PGObject::Util::DBAdmin;
 use Test::Exception;
