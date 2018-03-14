@@ -178,7 +178,7 @@ sub _write_log_files {
     );
 
     defined $args{errlog} and $self->_append_to_file(
-        $args{err_log},
+        $args{errlog},
         $self->{stderr},
     );
 }
