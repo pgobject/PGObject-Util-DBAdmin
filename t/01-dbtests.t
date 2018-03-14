@@ -4,7 +4,7 @@ use PGObject::Util::DBAdmin;
 use File::Temp;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 69;
+plan tests => 70;
 
 # Constructor
 
@@ -39,6 +39,7 @@ ok($backup_file = $db->backup_globals(
     file => $backup_file,
 ), 'can backup globals to specified file');
 ok(-f $backup_file, 'specified backup_globals output file exists');
+ok($backup_file =~ m/^$backup_file$/, 'backup_globals respects file parameter');
 cmp_ok(-s $backup_file, '>', 0, 'specified backup_globals output file has size > 0');
 undef $backup_file;
 
