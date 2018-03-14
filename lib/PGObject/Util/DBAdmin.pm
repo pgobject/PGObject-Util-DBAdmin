@@ -8,7 +8,7 @@ use Carp;
 use Moo;
 use DBI;
 use File::Temp;
-use Capture::Tiny ':all';
+use Capture::Tiny 'capture';
 
 =head1 NAME
 
