@@ -103,12 +103,16 @@ has stdout => (is => 'ro');
 
 
 sub _run_command {
-    my ($self, @command) = @_;
+    my ($self, %args) = @_;
 
     my $exit_code;
     ($self->{stdout}, $self->{stderr}, $exit_code) = capture {
-        system @command;
+        system @{$args{command}};
     };
+
+    if(defined ($args{errlog} // $args{stdout_log})) {
+        $self->_write_log_files(%args);
+    }
 
     if($exit_code != 0) {
         croak "error running command";
@@ -302,7 +306,7 @@ sub create {
     $self->port     and push(@command, '-p', $self->port);
     $self->dbname   and push(@command, $self->dbname);
 
-    return $self->_run_command(@command);
+    return $self->_run_command(command => [@command]);
 }
 
 
@@ -355,8 +359,11 @@ sub run_file {
     $self->port     and push(@command, "-p", $self->port);
     $self->dbname   and push(@command, $self->dbname);
 
-    my $result = $self->_run_command(@command);
-    $self->_write_log_files(%args);
+    my $result = $self->_run_command(
+        command    => [@command],
+        errlog     => $args{errlog},
+        stdout_log => $args{stdout_log},
+    );
 
     return $result;
 }
@@ -518,7 +525,7 @@ sub restore {
     defined $args{format} and push(@command, "-F$args{format}");
     push(@command, $args{file});
 
-    return $self->_run_command(@command);
+    return $self->_run_command(command => [@command]);
 }
 
 
@@ -541,7 +548,7 @@ sub drop {
     $self->port     and push(@command, '-p', $self->port);
     push(@command, $self->dbname);
 
-    return $self->_run_command(@command);
+    return $self->_run_command(command => [@command]);
 }
 
 
