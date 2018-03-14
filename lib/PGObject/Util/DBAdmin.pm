@@ -140,7 +140,7 @@ sub _run_command_to_file {
 
     close $output_fh or croak "Failed to close output file after writing $!";
 
-    return $output_fh->filename;
+    return 1;
 }
 
 
@@ -150,7 +150,8 @@ sub _open_temp_filehandle {
     # If caller has supplied a file path, use that
     # rather than generating our own temp file.
     if(defined $args{file}) {
-        open(my $fh, '>', $args{file})
+        # capture requires that the file be seekable
+        open(my $fh, '+>', $args{file})
             or croak "couldn't open file $args{file} for writing $!";
         return $fh;
     }
@@ -165,6 +166,35 @@ sub _open_temp_filehandle {
     ) or die "could not create temp file: $@, $!";
 
     return $fh;
+}
+
+
+sub _write_log_files {
+    my ($self, %args) = @_;
+
+    defined $args{stdout_log} and $self->_append_to_file(
+        $args{stdout_log},
+        $self->{stdout},
+    );
+
+    defined $args{errlog} and $self->_append_to_file(
+        $args{err_log},
+        $self->{stderr},
+    );
+}
+
+
+sub _append_to_file {
+    my ($self, $filename, $data) = @_;
+
+    open(my $fh, '>>', $filename)
+        or croak "couldn't open file $filename for appending $!";
+
+    print $fh ($data // '')
+        or croak "failed writing to file $!";
+
+    close $fh
+        or croak "failed closing file $filename $!";
 }
 
 
@@ -294,6 +324,16 @@ Recognized arguments are:
 
 Path to file to be run. This is a mandatory argument.
 
+=item stdout_log
+
+Provided for legacy compatibility. Optional argument. The full path of
+a file to which STDOUT from the external psql utility will be appended.
+
+=item errlog
+
+Provided for legacy compatibility. Optional argument. The full path of
+a file to which STDERR from the external psql utility will be appended.
+
 =back
 
 =cut
@@ -315,7 +355,10 @@ sub run_file {
     $self->port     and push(@command, "-p", $self->port);
     $self->dbname   and push(@command, $self->dbname);
 
-    return $self->_run_command(@command);
+    my $result = $self->_run_command(@command);
+    $self->_write_log_files(%args);
+
+    return $result;
 }
 
 
@@ -367,10 +410,12 @@ sub backup {
     defined $args{format} and push(@command, "-F$args{format}");
     $self->dbname   and push(@command, $self->dbname);
 
-    return $self->_run_command_to_file(
+    $self->_run_command_to_file(
         $output_fh,
         @command
     );
+
+    return $args{file} // $output_fh->filename;
 }
 
 
@@ -416,10 +461,12 @@ sub backup_globals {
     $self->host     and push(@command, '-h', $self->host);
     $self->port     and push(@command, '-p', $self->port);
 
-    return $self->_run_command_to_file(
+    $self->_run_command_to_file(
         $output_fh,
         @command
     );
+
+    return $args{file} // $output_fh->filename;
 }
 
 
