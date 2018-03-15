@@ -10,7 +10,7 @@ WriteMakefile(
     ABSTRACT_FROM    => 'lib/PGObject/Util/DBAdmin.pm',
     LICENSE          => 'BSD',
     PL_FILES         => {},
-    MIN_PERL_VERSION => 5.008,
+    MIN_PERL_VERSION => 5.010,
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => 0,
     },
