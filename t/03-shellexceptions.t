@@ -1,10 +1,13 @@
 use warnings;
 use strict;
+use File::Temp;
 use Test::More;
 use PGObject::Util::DBAdmin;
 use Test::Exception;
 
 plan tests => 8;
+
+my $output_file = File::Temp->new->filename;
 
 # These tests do not require a working database connection
 my $db = PGObject::Util::DBAdmin->new(
@@ -22,7 +25,8 @@ dies_ok {
 
 dies_ok {
     $db->backup(
-        format => 'THIS_IS_A_BAD_FORMAT'
+        format => 'THIS_IS_A_BAD_FORMAT',
+        file => $output_file,
     )
 } 'backup db with bad format';
 
@@ -64,3 +68,5 @@ dies_ok {
         format => 'AN_INVALID_FORMAT',
     )
 } 'restore method called with invalid format';
+
+unlink $output_file;
