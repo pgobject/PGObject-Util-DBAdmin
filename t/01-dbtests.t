@@ -37,14 +37,14 @@ cmp_ok(-s $backup_file, '>', 0, 'backup_globals output file has size > 0');
 unlink $backup_file;
 
 # Test backup_globals to specified file
-$backup_file = File::Temp->new->filename;
+my $output_file = File::Temp->new->filename;
 ok($backup_file = $db->backup_globals(
-    file => $backup_file,
+    file => $output_file,
 ), 'can backup globals to specified file');
 ok(-f $backup_file, 'specified backup_globals output file exists');
-ok($backup_file =~ m/^$backup_file$/, 'backup_globals respects file parameter');
+ok($backup_file =~ m/^$output_file$/, 'backup_globals respects file parameter');
 cmp_ok(-s $backup_file, '>', 0, 'specified backup_globals output file has size > 0');
-undef $backup_file;
+unlink $output_file;
 
 
 # List dbs
