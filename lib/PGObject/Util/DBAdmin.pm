@@ -163,7 +163,6 @@ sub _open_temp_filehandle {
     my %file_options = (UNLINK => 0);
 
     if(defined $args{tempdir}) {
-        $args{tempdir} =~ s|/$||; # strip trailing slash if present
         -d $args{tempdir}
             or croak "directory $args{tempdir} does not exist or is not a directory";
         $file_options{DIR} = $args{tempdir};
