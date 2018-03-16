@@ -78,8 +78,8 @@ ok(defined $db->stdout, 'after run_file stdout property is defined');
 cmp_ok(length $db->stdout, '>', 0, 'after run_file, stdout property has length > 0');
 ok(defined $db->stderr, 'after run_file stderr property is defined');
 cmp_ok(length $db->stderr, '==', 0, 'after run_file, stderr property has length == 0 for valid sql');
-undef $stdout_log;
-undef $stderr_log;
+unlink $stdout_log;
+unlink $stderr_log;
 
 ok ($dbh = $db->connect, 'Got dbi handle');
 
