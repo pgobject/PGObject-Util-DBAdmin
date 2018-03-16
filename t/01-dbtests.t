@@ -102,7 +102,7 @@ foreach my $format ((undef, 'p', 'c')) {
     ok($backup =~ m|^$output_file$|, 'backup respects file parameter');
     ok(-f $backup, "backup format $display_format output file exists");
     cmp_ok(-s $backup, '>', 0, "backup format $display_format output file has size > 0");
-    unlink $backup_file;
+    unlink $backup;
 
     # Test backing up to auto-generated temp file
     ok($backup = $db->backup(
