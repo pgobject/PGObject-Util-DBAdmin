@@ -93,15 +93,16 @@ foreach my $format ((undef, 'p', 'c')) {
     my $display_format = $format || 'undef';
 
     # Test backing up to specified file
-    my $backup = File::Temp->new->filename;
+    my $output_file = File::Temp->new->filename;
+    my $backup;
     ok($backup = $db->backup(
            format => $format,
-           file   => $backup,
+           file   => $output_file,
     ), "Made backup to specified file, format $display_format");
-    ok($backup =~ m|^$backup$|, 'backup respects file parameter');
+    ok($backup =~ m|^$output_file$|, 'backup respects file parameter');
     ok(-f $backup, "backup format $display_format output file exists");
     cmp_ok(-s $backup, '>', 0, "backup format $display_format output file has size > 0");
-    undef $backup;
+    unlink $backup_file;
 
     # Test backing up to auto-generated temp file
     ok($backup = $db->backup(
