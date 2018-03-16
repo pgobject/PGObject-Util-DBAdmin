@@ -1,6 +1,7 @@
 use warnings;
 use strict;
 use Test::More;
+use File::Temp;
 use PGObject::Util::DBAdmin;
 use Test::Exception;
 
@@ -39,12 +40,16 @@ cmp_ok(-s $stdout_log, '==', 0, 'run_file stdout_log file has size == 0 for inva
 cmp_ok(-s $stderr_log, '>', 0, 'run_file errlog file has size > 0 for invalid sql');
 cmp_ok(length $db->stdout, '==', 0, 'after run_file, stdout property has length == 0 for invalid sql');
 cmp_ok(length $db->stderr, '>', 0, 'after run_file, stderr property has length > 0 for invalid sql');
-undef $stdout_log;
-undef $stderr_log;
+unlink $stdout_log;
+unlink $stderr_log;
 
 lives_ok { $db->drop } 'drop db first time, successful';
 dies_ok { $db->drop } 'dropdb second time, dies';
-dies_ok { $db->backup(format => 'c') } 'cannot back up non-existent db';
+
+my $backup_file = File::Temp->new->filename;
+dies_ok { $db->backup(format => 'c', file => $backup_file) } 'cannot back up non-existent db';
+unlink $backup_file;
+
 dies_ok { $db->restore(format => 'c', file => 't/data/backup.sqlc') } 'cannot restore to non-existent db';
 
 $db = PGObject::Util::DBAdmin->new(
