@@ -242,14 +242,18 @@ sub connect {
 
     $connect .= ';host=' . $self->host
         if defined $self->host;
+
     $connect .= ';port=' . $self->port
         if defined $self->port;
-    my $dbh =  DBI->connect('dbi:Pg:' . $connect,
-                            $self->username, $self->password,
-                            $options)
-        or carp 'Could not connect to database!';
-    return $dbh;
 
+    my $dbh =  DBI->connect(
+        'dbi:Pg:' . $connect,
+        $self->username,
+        $self->password,
+        $options
+    ) or carp 'Could not connect to database!';
+
+    return $dbh;
 }
 
 =head2 server_version
@@ -267,6 +271,7 @@ sub server_version {
         or croak 'failed to extract version string';
     return $retval;
 }
+
 
 =head2 list_dbs
 
