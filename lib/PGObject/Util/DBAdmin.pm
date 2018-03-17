@@ -115,7 +115,7 @@ sub _run_command {
     }
 
     if($exit_code != 0) {
-        croak "error running command";
+        croak 'error running command';
     }
 
     for my $err (split /\n/, $self->{stderr}) {
@@ -135,7 +135,7 @@ sub _run_command_to_file {
     } stdout => $output_fh;
 
     if($exit_code != 0) {
-        croak "error running command";
+        croak 'error running command';
     }
 
     for my $err (split /\n/, $self->{stderr}) {
@@ -247,7 +247,7 @@ sub connect {
     my $dbh =  DBI->connect('dbi:Pg:' . $connect,
                             $self->username, $self->password,
                             $options)
-        or carp "Could not connect to database!";
+        or carp 'Could not connect to database!';
     return $dbh;
 
 }
@@ -365,9 +365,9 @@ sub run_file {
 
     # Build command
     my @command = ('psql', '-f', $args{file});
-    defined $self->username and push(@command, "-U", $self->username);
-    defined $self->host     and push(@command, "-h", $self->host);
-    defined $self->port     and push(@command, "-p", $self->port);
+    defined $self->username and push(@command, '-U', $self->username);
+    defined $self->host     and push(@command, '-h', $self->host);
+    defined $self->port     and push(@command, '-p', $self->port);
     defined $self->dbname   and push(@command, $self->dbname);
 
     my $result = $self->_run_command(
@@ -422,9 +422,9 @@ sub backup {
     my $output_fh = $self->_open_temp_filehandle(%args);
 
     my @command = ('pg_dump');
-    defined $self->username and push(@command, "-U", $self->username);
-    defined $self->host     and push(@command, "-h", $self->host);
-    defined $self->port     and push(@command, "-p", $self->port);
+    defined $self->username and push(@command, '-U', $self->username);
+    defined $self->host     and push(@command, '-h', $self->host);
+    defined $self->port     and push(@command, '-p', $self->port);
     defined $args{format}   and push(@command, "-F$args{format}");
     defined $self->dbname   and push(@command, $self->dbname);
 
@@ -529,10 +529,10 @@ sub restore {
 
     # Build command options
     my @command = ('pg_restore', '--verbose');
-    defined $self->dbname   and push(@command, "-d", $self->dbname);
-    defined $self->username and push(@command, "-U", $self->username);
-    defined $self->host     and push(@command, "-h", $self->host);
-    defined $self->port     and push(@command, "-p", $self->port);
+    defined $self->dbname   and push(@command, '-d', $self->dbname);
+    defined $self->username and push(@command, '-U', $self->username);
+    defined $self->host     and push(@command, '-h', $self->host);
+    defined $self->port     and push(@command, '-p', $self->port);
     defined $args{format}   and push(@command, "-F$args{format}");
     push(@command, $args{file});
 
