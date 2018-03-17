@@ -169,7 +169,7 @@ sub _open_temp_filehandle {
     }
 
     my $fh = File::Temp->new(%file_options)
-        or die "could not create temp file: $@, $!";
+        or carp "could not create temp file: $@, $!";
 
     return $fh;
 }
