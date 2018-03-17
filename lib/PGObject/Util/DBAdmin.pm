@@ -229,8 +229,9 @@ sub export {
 
 =head2 connect($options)
 
-Connects to the db using DBI and returns a db connection;
-allows specification of options in the $options hashref.
+Connects to the database using DBI and returns a database connection.
+
+Connection options may be specified in the $options hashref.
 
 =cut
 
@@ -253,7 +254,7 @@ sub connect {
 
 =head2 server_version
 
-returns a version string (like 9.1.4) for PostgreSQL
+Returns a version string (like 9.1.4) for PostgreSQL
 
 =cut
 
@@ -285,7 +286,9 @@ sub list_dbs {
 
 =head2 create
 
-Creates a new db.  Dies if there is an error.
+Creates a new database.
+
+Croaks on error, returns true on success.
 
 Supported arguments:
 
@@ -293,7 +296,9 @@ Supported arguments:
 
 =item copy_of
 
-Creates the db as a copy of the one of that name.  Default is unspecified.
+Creates the new database as a copy of the specified one (using it as
+a template). Optional parameter. Default is to create a database
+without a template.
 
 =back
 
@@ -499,7 +504,7 @@ Recognized arguments are:
 
 =item file
 
-Path to file which will be restored to the database.
+Path to file which will be restored to the database. Required.
 
 =item format
 
