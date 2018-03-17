@@ -537,12 +537,13 @@ sub restore {
 
 =head2 drop
 
-Drops the database.  This is not recoverable.
+Drops the database.  This is not recoverable. Croaks on error, returns
+true on success.
 
 =cut
 
 sub drop {
-    my ($self, %args) = @_;
+    my ($self) = @_;
 
     croak 'No db name of this object' unless $self->dbname;
 
