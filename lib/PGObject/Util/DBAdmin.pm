@@ -115,7 +115,7 @@ sub _run_command {
     }
 
     if($exit_code != 0) {
-        croak "error running command";
+        croak 'error running command';
     }
 
     for my $err (split /\n/, $self->{stderr}) {
@@ -135,7 +135,7 @@ sub _run_command_to_file {
     } stdout => $output_fh;
 
     if($exit_code != 0) {
-        croak "error running command";
+        croak 'error running command';
     }
 
     for my $err (split /\n/, $self->{stderr}) {
@@ -169,7 +169,7 @@ sub _open_temp_filehandle {
     }
 
     my $fh = File::Temp->new(%file_options)
-        or die "could not create temp file: $@, $!";
+        or croak "could not create temp file: $@, $!";
 
     return $fh;
 }
@@ -187,6 +187,8 @@ sub _write_log_files {
         $args{errlog},
         $self->{stderr},
     );
+
+    return;
 }
 
 
@@ -201,6 +203,8 @@ sub _append_to_file {
 
     close $fh
         or croak "failed closing file $filename $!";
+
+    return;
 }
 
 
@@ -225,8 +229,9 @@ sub export {
 
 =head2 connect($options)
 
-Connects to the db using DBI and returns a db connection;
-allows specification of options in the $options hashref.
+Connects to the database using DBI and returns a database connection.
+
+Connection options may be specified in the $options hashref.
 
 =cut
 
@@ -237,19 +242,23 @@ sub connect {
 
     $connect .= ';host=' . $self->host
         if defined $self->host;
+
     $connect .= ';port=' . $self->port
         if defined $self->port;
-    my $dbh =  DBI->connect('dbi:Pg:' . $connect,
-                            $self->username, $self->password,
-                            $options)
-        or die "Could not connect to database!";
-    return $dbh;
 
+    my $dbh = DBI->connect(
+        'dbi:Pg:' . $connect,
+        $self->username,
+        $self->password,
+        $options
+    ) or croak 'Could not connect to database!';
+
+    return $dbh;
 }
 
 =head2 server_version
 
-returns a version string (like 9.1.4) for PostgreSQL
+Returns a version string (like 9.1.4) for PostgreSQL. Croaks on error.
 
 =cut
 
@@ -258,10 +267,11 @@ sub server_version {
     my $version =
            __PACKAGE__->new($self->export, (dbname => 'template1')
                            )->connect->selectrow_array('SELECT version()');
-    $version =~ /(\d+\.\d+\.\d+)/;
-    my $retval = $1;
+    my ($retval) = $version =~ /(\d+\.\d+\.\d+)/
+        or croak 'failed to extract version string';
     return $retval;
 }
+
 
 =head2 list_dbs
 
@@ -281,7 +291,9 @@ sub list_dbs {
 
 =head2 create
 
-Creates a new db.  Dies if there is an error.
+Creates a new database.
+
+Croaks on error, returns true on success.
 
 Supported arguments:
 
@@ -289,7 +301,9 @@ Supported arguments:
 
 =item copy_of
 
-Creates the db as a copy of the one of that name.  Default is unspecified.
+Creates the new database as a copy of the specified one (using it as
+a template). Optional parameter. Default is to create a database
+without a template.
 
 =back
 
@@ -356,9 +370,9 @@ sub run_file {
 
     # Build command
     my @command = ('psql', '-f', $args{file});
-    defined $self->username and push(@command, "-U", $self->username);
-    defined $self->host     and push(@command, "-h", $self->host);
-    defined $self->port     and push(@command, "-p", $self->port);
+    defined $self->username and push(@command, '-U', $self->username);
+    defined $self->host     and push(@command, '-h', $self->host);
+    defined $self->port     and push(@command, '-p', $self->port);
     defined $self->dbname   and push(@command, $self->dbname);
 
     my $result = $self->_run_command(
@@ -413,9 +427,9 @@ sub backup {
     my $output_fh = $self->_open_temp_filehandle(%args);
 
     my @command = ('pg_dump');
-    defined $self->username and push(@command, "-U", $self->username);
-    defined $self->host     and push(@command, "-h", $self->host);
-    defined $self->port     and push(@command, "-p", $self->port);
+    defined $self->username and push(@command, '-U', $self->username);
+    defined $self->host     and push(@command, '-h', $self->host);
+    defined $self->port     and push(@command, '-p', $self->port);
     defined $args{format}   and push(@command, "-F$args{format}");
     defined $self->dbname   and push(@command, $self->dbname);
 
@@ -495,7 +509,7 @@ Recognized arguments are:
 
 =item file
 
-Path to file which will be restored to the database.
+Path to file which will be restored to the database. Required.
 
 =item format
 
@@ -520,10 +534,10 @@ sub restore {
 
     # Build command options
     my @command = ('pg_restore', '--verbose');
-    defined $self->dbname   and push(@command, "-d", $self->dbname);
-    defined $self->username and push(@command, "-U", $self->username);
-    defined $self->host     and push(@command, "-h", $self->host);
-    defined $self->port     and push(@command, "-p", $self->port);
+    defined $self->dbname   and push(@command, '-d', $self->dbname);
+    defined $self->username and push(@command, '-U', $self->username);
+    defined $self->host     and push(@command, '-h', $self->host);
+    defined $self->port     and push(@command, '-p', $self->port);
     defined $args{format}   and push(@command, "-F$args{format}");
     push(@command, $args{file});
 
@@ -533,12 +547,13 @@ sub restore {
 
 =head2 drop
 
-Drops the database.  This is not recoverable.
+Drops the database.  This is not recoverable. Croaks on error, returns
+true on success.
 
 =cut
 
 sub drop {
-    my ($self, %args) = @_;
+    my ($self) = @_;
 
     croak 'No db name of this object' unless $self->dbname;
 
