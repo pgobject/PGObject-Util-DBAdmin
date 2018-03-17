@@ -246,12 +246,12 @@ sub connect {
     $connect .= ';port=' . $self->port
         if defined $self->port;
 
-    my $dbh =  DBI->connect(
+    my $dbh = DBI->connect(
         'dbi:Pg:' . $connect,
         $self->username,
         $self->password,
         $options
-    ) or carp 'Could not connect to database!';
+    ) or croak 'Could not connect to database!';
 
     return $dbh;
 }
