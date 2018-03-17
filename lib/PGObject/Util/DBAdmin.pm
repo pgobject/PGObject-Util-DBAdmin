@@ -410,7 +410,7 @@ sub backup {
     local $ENV{PGPASSWORD} = $self->password if defined $self->password;
     my $output_fh = $self->_open_temp_filehandle(%args);
 
-    my @command = ('pg_dump', '--verbose');
+    my @command = ('pg_dump');
     $self->username and push(@command, "-U", $self->username);
     $self->host     and push(@command, "-h", $self->host);
     $self->port     and push(@command, "-p", $self->port);
