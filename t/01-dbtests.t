@@ -37,14 +37,14 @@ cmp_ok(-s $backup_file, '>', 0, 'backup_globals output file has size > 0');
 unlink $backup_file;
 
 # Test backup_globals to specified file
-$backup_file = File::Temp->new->filename;
+my $output_file = File::Temp->new->filename;
 ok($backup_file = $db->backup_globals(
-    file => $backup_file,
+    file => $output_file,
 ), 'can backup globals to specified file');
 ok(-f $backup_file, 'specified backup_globals output file exists');
-ok($backup_file =~ m/^$backup_file$/, 'backup_globals respects file parameter');
+ok($backup_file =~ m/^$output_file$/, 'backup_globals respects file parameter');
 cmp_ok(-s $backup_file, '>', 0, 'specified backup_globals output file has size > 0');
-undef $backup_file;
+unlink $output_file;
 
 
 # List dbs
@@ -78,8 +78,8 @@ ok(defined $db->stdout, 'after run_file stdout property is defined');
 cmp_ok(length $db->stdout, '>', 0, 'after run_file, stdout property has length > 0');
 ok(defined $db->stderr, 'after run_file stderr property is defined');
 cmp_ok(length $db->stderr, '==', 0, 'after run_file, stderr property has length == 0 for valid sql');
-undef $stdout_log;
-undef $stderr_log;
+unlink $stdout_log;
+unlink $stderr_log;
 
 ok ($dbh = $db->connect, 'Got dbi handle');
 
@@ -93,15 +93,16 @@ foreach my $format ((undef, 'p', 'c')) {
     my $display_format = $format || 'undef';
 
     # Test backing up to specified file
-    my $backup = File::Temp->new->filename;
+    my $output_file = File::Temp->new->filename;
+    my $backup;
     ok($backup = $db->backup(
            format => $format,
-           file   => $backup,
+           file   => $output_file,
     ), "Made backup to specified file, format $display_format");
-    ok($backup =~ m|^$backup$|, 'backup respects file parameter');
+    ok($backup =~ m|^$output_file$|, 'backup respects file parameter');
     ok(-f $backup, "backup format $display_format output file exists");
     cmp_ok(-s $backup, '>', 0, "backup format $display_format output file has size > 0");
-    undef $backup;
+    unlink $backup;
 
     # Test backing up to auto-generated temp file
     ok($backup = $db->backup(
