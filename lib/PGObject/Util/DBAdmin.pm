@@ -160,14 +160,16 @@ sub _open_temp_filehandle {
         return $fh;
     }
 
-    my $tempdir = $args{tempdir} // $ENV{TEMP} // '/tmp';
-    $tempdir =~ s|/$||;
-    -d $tempdir or croak "directory $tempdir does not exist or is not a directory";
+    my %file_options = (UNLINK => 0);
 
-    my $fh = File::Temp->new(
-        DIR => $tempdir,
-        UNLINK => 0
-    ) or die "could not create temp file: $@, $!";
+    if(defined $args{tempdir}) {
+        -d $args{tempdir}
+            or croak "directory $args{tempdir} does not exist or is not a directory";
+        $file_options{DIR} = $args{tempdir};
+    }
+
+    my $fh = File::Temp->new(%file_options)
+        or die "could not create temp file: $@, $!";
 
     return $fh;
 }
@@ -395,8 +397,8 @@ specified, a file will be created using File::Temp.
 
 =item tempdir
 
-The directory to store temp files in.  Defaults to $ENV{TEMP} if set and
-'/tmp' if not. Ignored if file paramter is given.
+The directory in which to write the backup file. Optional parameter.  Uses
+File::Temp default if not defined.  Ignored if file paramter is given.
 
 =back
 
@@ -448,8 +450,8 @@ specified, a file will be created using File::Temp.
 
 =item tempdir
 
-The directory to store temp files in.  Defaults to $ENV{TEMP} if set and
-'/tmp/' if not. Ignored if file paramter is given.
+The directory in which to write the backup file. Optional parameter.  Uses
+File::Temp default if not defined.  Ignored if file paramter is given.
 
 =back
 
