@@ -17,6 +17,8 @@ WriteMakefile(
     BUILD_REQUIRES => {
         'Test::More' => 0,
         'Test::Exception' => 0,
+        'Perl::Critic' => 0,
+        'Perl::Critic::Policy::Modules::RequireExplicitInclusion' => 0,
     },
     PREREQ_PM => {
         'DBD::Pg'       => 0,
