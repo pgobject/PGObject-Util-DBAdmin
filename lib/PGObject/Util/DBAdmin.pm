@@ -254,7 +254,7 @@ sub connect {
 
 =head2 server_version
 
-Returns a version string (like 9.1.4) for PostgreSQL
+Returns a version string (like 9.1.4) for PostgreSQL. Croaks on error.
 
 =cut
 
@@ -263,8 +263,8 @@ sub server_version {
     my $version =
            __PACKAGE__->new($self->export, (dbname => 'template1')
                            )->connect->selectrow_array('SELECT version()');
-    $version =~ /(\d+\.\d+\.\d+)/;
-    my $retval = $1;
+    my ($retval) = $version =~ /(\d+\.\d+\.\d+)/
+        or croak 'failed to extract version string';
     return $retval;
 }
 
