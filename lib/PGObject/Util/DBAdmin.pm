@@ -187,6 +187,8 @@ sub _write_log_files {
         $args{errlog},
         $self->{stderr},
     );
+
+    return;
 }
 
 
@@ -201,6 +203,8 @@ sub _append_to_file {
 
     close $fh
         or croak "failed closing file $filename $!";
+
+    return;
 }
 
 
