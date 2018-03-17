@@ -236,9 +236,9 @@ sub connect {
     my $connect = 'dbname="' . $self->dbname . '"';
 
     $connect .= ';host=' . $self->host
-        if $self->host;
+        if defined $self->host;
     $connect .= ';port=' . $self->port
-        if $self->port;
+        if defined $self->port;
     my $dbh =  DBI->connect('dbi:Pg:' . $connect,
                             $self->username, $self->password,
                             $options)
@@ -302,11 +302,11 @@ sub create {
     local $ENV{PGPASSWORD} = $self->password if $self->password;
 
     my @command = ('createdb');
-    $self->username and push(@command, '-U', $self->username);
-    $args{copy_of}  and push(@command, '-T', $args{copy_of});
-    $self->host     and push(@command, '-h', $self->host);
-    $self->port     and push(@command, '-p', $self->port);
-    $self->dbname   and push(@command, $self->dbname);
+    defined $self->username and push(@command, '-U', $self->username);
+    defined $args{copy_of}  and push(@command, '-T', $args{copy_of});
+    defined $self->host     and push(@command, '-h', $self->host);
+    defined $self->port     and push(@command, '-p', $self->port);
+    defined $self->dbname   and push(@command, $self->dbname);
 
     return $self->_run_command(command => [@command]);
 }
@@ -356,10 +356,10 @@ sub run_file {
 
     # Build command
     my @command = ('psql', '-f', $args{file});
-    $self->username and push(@command, "-U", $self->username);
-    $self->host     and push(@command, "-h", $self->host);
-    $self->port     and push(@command, "-p", $self->port);
-    $self->dbname   and push(@command, $self->dbname);
+    defined $self->username and push(@command, "-U", $self->username);
+    defined $self->host     and push(@command, "-h", $self->host);
+    defined $self->port     and push(@command, "-p", $self->port);
+    defined $self->dbname   and push(@command, $self->dbname);
 
     my $result = $self->_run_command(
         command    => [@command],
@@ -413,11 +413,11 @@ sub backup {
     my $output_fh = $self->_open_temp_filehandle(%args);
 
     my @command = ('pg_dump');
-    $self->username and push(@command, "-U", $self->username);
-    $self->host     and push(@command, "-h", $self->host);
-    $self->port     and push(@command, "-p", $self->port);
-    defined $args{format} and push(@command, "-F$args{format}");
-    $self->dbname   and push(@command, $self->dbname);
+    defined $self->username and push(@command, "-U", $self->username);
+    defined $self->host     and push(@command, "-h", $self->host);
+    defined $self->port     and push(@command, "-p", $self->port);
+    defined $args{format}   and push(@command, "-F$args{format}");
+    defined $self->dbname   and push(@command, $self->dbname);
 
     $self->_run_command_to_file(
         $output_fh,
@@ -466,9 +466,9 @@ sub backup_globals {
     my $output_fh = $self->_open_temp_filehandle(%args);
 
     my @command = ('pg_dumpall', '-g');
-    $self->username and push(@command, '-U', $self->username);
-    $self->host     and push(@command, '-h', $self->host);
-    $self->port     and push(@command, '-p', $self->port);
+    defined $self->username and push(@command, '-U', $self->username);
+    defined $self->host     and push(@command, '-h', $self->host);
+    defined $self->port     and push(@command, '-p', $self->port);
 
     $self->_run_command_to_file(
         $output_fh,
@@ -520,11 +520,11 @@ sub restore {
 
     # Build command options
     my @command = ('pg_restore', '--verbose');
-    $self->dbname   and push(@command, "-d", $self->dbname);
-    $self->username and push(@command, "-U", $self->username);
-    $self->host     and push(@command, "-h", $self->host);
-    $self->port     and push(@command, "-p", $self->port);
-    defined $args{format} and push(@command, "-F$args{format}");
+    defined $self->dbname   and push(@command, "-d", $self->dbname);
+    defined $self->username and push(@command, "-U", $self->username);
+    defined $self->host     and push(@command, "-h", $self->host);
+    defined $self->port     and push(@command, "-p", $self->port);
+    defined $args{format}   and push(@command, "-F$args{format}");
     push(@command, $args{file});
 
     return $self->_run_command(command => [@command]);
@@ -545,9 +545,9 @@ sub drop {
     local $ENV{PGPASSWORD} = $self->password if $self->password;
 
     my @command = ('dropdb');
-    $self->username and push(@command, '-U', $self->username);
-    $self->host     and push(@command, '-h', $self->host);
-    $self->port     and push(@command, '-p', $self->port);
+    defined $self->username and push(@command, '-U', $self->username);
+    defined $self->host     and push(@command, '-h', $self->host);
+    defined $self->port     and push(@command, '-p', $self->port);
     push(@command, $self->dbname);
 
     return $self->_run_command(command => [@command]);
