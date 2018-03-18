@@ -25,6 +25,7 @@ WriteMakefile(
         'Capture::Tiny' => 0,
         'DBI'           => 0,
         'Moo'           => 0,
+        'namespace::clean' => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'PGObject-Util-DBAdmin-*' },

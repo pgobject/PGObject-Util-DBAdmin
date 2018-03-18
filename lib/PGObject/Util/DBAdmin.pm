@@ -5,10 +5,11 @@ use strict;
 use warnings FATAL => 'all';
 
 use Carp;
-use Moo;
 use DBI;
 use File::Temp;
 use Capture::Tiny 'capture';
+use Moo;
+use namespace::clean;
 
 =head1 NAME
 
