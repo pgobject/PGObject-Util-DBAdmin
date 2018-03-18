@@ -149,7 +149,7 @@ sub _run_command_to_file {
 }
 
 
-sub _open_temp_filehandle {
+sub _open_output_filehandle {
     my ($self, %args) = @_;
 
     # If caller has supplied a file path, use that
@@ -425,7 +425,7 @@ sub backup {
     $self->{stdout} = undef;
 
     local $ENV{PGPASSWORD} = $self->password if defined $self->password;
-    my $output_fh = $self->_open_temp_filehandle(%args);
+    my $output_fh = $self->_open_output_filehandle(%args);
 
     my @command = ('pg_dump');
     defined $self->username and push(@command, '-U', $self->username);
@@ -478,7 +478,7 @@ sub backup_globals {
     $self->{stdout} = undef;
 
     local $ENV{PGPASSWORD} = $self->password if defined $self->password;
-    my $output_fh = $self->_open_temp_filehandle(%args);
+    my $output_fh = $self->_open_output_filehandle(%args);
 
     my @command = ('pg_dumpall', '-g');
     defined $self->username and push(@command, '-U', $self->username);
