@@ -6,7 +6,9 @@ use warnings FATAL => 'all';
 
 use Carp;
 use DBI;
+use File::stat;
 use File::Temp;
+use IO::File;
 use Capture::Tiny 'capture';
 use Moo;
 use namespace::clean;
@@ -155,9 +157,19 @@ sub _open_output_filehandle {
     # If caller has supplied a file path, use that
     # rather than generating our own temp file.
     if(defined $args{file}) {
+
+        # If file already exists, make sure it has 0600 permissions
+        # so it isn't executable and only user can read or write.
+        if(my $stat = stat($args{file})) {
+            $stat->mode != 0600 and chmod 0600, $args{file}
+                or croak "faied to set 0600 permissions on $args{file} $!";
+        }
+
         # capture requires that the file be seekable
-        open(my $fh, '+>', $args{file})
+        # use sysopen so we can set permissions at time of creation
+        sysopen(my $fh, $args{file}, O_RDWR|O_CREAT, 0600)
             or croak "couldn't open file $args{file} for writing $!";
+
         return $fh;
     }
 
@@ -169,6 +181,7 @@ sub _open_output_filehandle {
         $file_options{DIR} = $args{tempdir};
     }
 
+    # File::Temp creates files with permissions 0600
     my $fh = File::Temp->new(%file_options)
         or croak "could not create temp file: $@, $!";
 
