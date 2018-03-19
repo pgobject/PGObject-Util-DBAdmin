@@ -7,6 +7,7 @@ use warnings FATAL => 'all';
 use Carp;
 use DBI;
 use File::Temp;
+use IO::File;
 use Capture::Tiny 'capture';
 use Moo;
 use namespace::clean;
@@ -149,15 +150,22 @@ sub _run_command_to_file {
 }
 
 
-sub _open_temp_filehandle {
+sub _open_output_filehandle {
     my ($self, %args) = @_;
 
     # If caller has supplied a file path, use that
     # rather than generating our own temp file.
     if(defined $args{file}) {
-        # capture requires that the file be seekable
-        open(my $fh, '+>', $args{file})
+        # If file already exists, we don't alter its permissions,
+        # but new files are created with a mask of 0600 so they are
+        # only readable and writeable by the user that creates them.
+        #
+        # capture requires that the file be seekable.
+        #
+        # Use sysopen so we can set permissions at time of creation.
+        sysopen(my $fh, $args{file}, O_RDWR|O_CREAT, 0600)
             or croak "couldn't open file $args{file} for writing $!";
+
         return $fh;
     }
 
@@ -169,6 +177,7 @@ sub _open_temp_filehandle {
         $file_options{DIR} = $args{tempdir};
     }
 
+    # File::Temp creates files with permissions 0600
     my $fh = File::Temp->new(%file_options)
         or croak "could not create temp file: $@, $!";
 
@@ -407,8 +416,11 @@ The specified format, for example c for custom.  Defaults to plain text.
 
 =item file
 
-Full path of the file to which the backup will be written. If not
-specified, a file will be created using File::Temp.
+Full path of the file to which the backup will be written. If the file
+does not exist, one will be created with umask 0600. If the file exists,
+it will be overwritten, but its permissions will not be changed.
+
+If undefined, a file will be created using File::Temp having umask 0600.
 
 =item tempdir
 
@@ -425,7 +437,7 @@ sub backup {
     $self->{stdout} = undef;
 
     local $ENV{PGPASSWORD} = $self->password if defined $self->password;
-    my $output_fh = $self->_open_temp_filehandle(%args);
+    my $output_fh = $self->_open_output_filehandle(%args);
 
     my @command = ('pg_dump');
     defined $self->username and push(@command, '-U', $self->username);
@@ -460,8 +472,11 @@ Accepted parameters:
 
 =item file
 
-Full path of the file to which the backup will be written. If not
-specified, a file will be created using File::Temp.
+Full path of the file to which the backup will be written. If the file
+does not exist, one will be created with umask 0600. If the file exists,
+it will be overwritten, but its permissions will not be changed.
+
+If undefined, a file will be created using File::Temp having umask 0600.
 
 =item tempdir
 
@@ -478,7 +493,7 @@ sub backup_globals {
     $self->{stdout} = undef;
 
     local $ENV{PGPASSWORD} = $self->password if defined $self->password;
-    my $output_fh = $self->_open_temp_filehandle(%args);
+    my $output_fh = $self->_open_output_filehandle(%args);
 
     my @command = ('pg_dumpall', '-g');
     defined $self->username and push(@command, '-U', $self->username);
