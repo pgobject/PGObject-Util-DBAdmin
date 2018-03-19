@@ -6,7 +6,6 @@ use warnings FATAL => 'all';
 
 use Carp;
 use DBI;
-use File::stat;
 use File::Temp;
 use IO::File;
 use Capture::Tiny 'capture';
