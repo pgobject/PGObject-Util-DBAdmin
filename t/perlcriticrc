@@ -55,7 +55,6 @@ verbose =%s %p %f   %l\n
 [TestingAndDebugging::RequireUseWarnings]
 [ValuesAndExpressions::ProhibitCommaSeparatedStatements]
 [ValuesAndExpressions::ProhibitInterpolationOfLiterals]
-[ValuesAndExpressions::ProhibitLeadingZeros]
 [ValuesAndExpressions::ProhibitMagicNumbers]
     allowed_values = -1 0 1 2 100
 [ValuesAndExpressions::ProhibitMismatchedOperators]
@@ -66,3 +65,10 @@ verbose =%s %p %f   %l\n
 [Variables::RequireInitializationForLocalVars]
 [Variables::RequireLexicalLoopIterators]
 [Variables::RequireLocalizedPunctuationVars]
+
+# Not applied
+#
+# Because we use octal values to refer to file permissions
+# Wrapping each of these in an oct(..) as Perl::Critic suggests
+# harms readability.
+# [ValuesAndExpressions::ProhibitLeadingZeros]
