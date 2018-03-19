@@ -7,7 +7,7 @@ use PGObject::Util::DBAdmin;
 use File::Temp;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 78;
+plan tests => 70;
 
 # Constructor
 
@@ -23,39 +23,14 @@ ok($db = PGObject::Util::DBAdmin->new(
 ), 'Created db admin object');
 
 # Drop db if exists
-
 eval { $db->drop };
-
-# Test backup_globals to auto-generated temp file
-my $backup_file;
-ok($backup_file = $db->backup_globals(
-    tempdir => 't/var/',
-), 'can backup globals');
-ok(-f $backup_file, 'backup_globals output file exists');
-ok($backup_file =~ m|^t/var/|, 'backup file respects tempdir parameter');
-cmp_ok(-s $backup_file, '>', 0, 'backup_globals output file has size > 0');
-unlink $backup_file;
-
-# Test backup_globals to specified file
-my $output_file = File::Temp->new->filename;
-ok($backup_file = $db->backup_globals(
-    file => $output_file,
-), 'can backup globals to specified file');
-ok(-f $backup_file, 'specified backup_globals output file exists');
-ok($backup_file =~ m/^$output_file$/, 'backup_globals respects file parameter');
-cmp_ok(-s $backup_file, '>', 0, 'specified backup_globals output file has size > 0');
-unlink $output_file;
-
 
 # List dbs
 my @dblist;
-
 ok(@dblist = $db->list_dbs, 'Got a db list');
-
 ok (!grep {$_ eq 'pgobject_test_db'} @dblist, 'DB list does not contain pgobject_test_db');
 
 # Create db
-
 $db->create;
 
 ok($db->server_version, 'Got a server version');
