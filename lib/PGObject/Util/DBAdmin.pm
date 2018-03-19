@@ -417,8 +417,11 @@ The specified format, for example c for custom.  Defaults to plain text.
 
 =item file
 
-Full path of the file to which the backup will be written. If not
-specified, a file will be created using File::Temp.
+Full path of the file to which the backup will be written. If the file
+does not exist, one will be created with umask 0600. If the file exists,
+it will be overwritten, but its permissions will not be changed.
+
+If undefined, a file will be created using File::Temp having umask 0600.
 
 =item tempdir
 
@@ -470,8 +473,11 @@ Accepted parameters:
 
 =item file
 
-Full path of the file to which the backup will be written. If not
-specified, a file will be created using File::Temp.
+Full path of the file to which the backup will be written. If the file
+does not exist, one will be created with umask 0600. If the file exists,
+it will be overwritten, but its permissions will not be changed.
+
+If undefined, a file will be created using File::Temp having umask 0600.
 
 =item tempdir
 
