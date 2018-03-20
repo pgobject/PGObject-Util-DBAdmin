@@ -6,7 +6,7 @@ use PGObject::Util::DBAdmin;
 use Test::Exception;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 17;
+plan tests => 20;
 
 my $db = PGObject::Util::DBAdmin->new(
    username => 'postgres'        ,
@@ -48,9 +48,20 @@ dies_ok { $db->drop } 'dropdb second time, dies';
 
 my $backup_file = File::Temp->new->filename;
 dies_ok { $db->backup(format => 'c', file => $backup_file) } 'cannot back up non-existent db';
-unlink $backup_file;
+ok(! -e $backup_file, 'output file deleted after backup error');
 
 dies_ok { $db->restore(format => 'c', file => 't/data/backup.sqlc') } 'cannot restore to non-existent db';
+
+
+$db = PGObject::Util::DBAdmin->new(
+   username => 'invalid',
+   host     => 'localhost',
+   port     => '0',
+);
+$backup_file = File::Temp->new->filename;
+dies_ok { $db->backup(format => 'c', file => $backup_file) } 'cannot backup_globals with bad username';
+ok(! -e $backup_file, 'output file deleted after backup_globals error');
+
 
 $db = PGObject::Util::DBAdmin->new(
    username => 'postgres'        ,

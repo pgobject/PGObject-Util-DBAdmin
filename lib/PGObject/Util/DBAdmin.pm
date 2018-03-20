@@ -129,24 +129,41 @@ sub _run_command {
 
 
 sub _run_command_to_file {
-    my ($self, $output_fh, @command) = @_;
+    my ($self, $output_fh, $output_filename, @command) = @_;
 
     my $exit_code;
     (undef, $self->{stderr}, $exit_code) = capture {
         system @command;
     } stdout => $output_fh;
 
-    if($exit_code != 0) {
-        croak 'error running command';
-    }
+    close $output_fh or $self->_unlink_file_and_croak(
+        $output_filename,
+        "Failed to close output file after writing $!"
+    );
+
+    ($exit_code == 0) or $self->_unlink_file_and_croak(
+        $output_filename,
+        'error running command'
+    );
 
     for my $err (split /\n/, $self->{stderr}) {
-        croak $err if $err =~ /(ERROR|FATAL)/;
+        if($err =~ /(ERROR|FATAL)/) {
+            $self->_unlink_file_and_croak(
+                $output_filename,
+                $err
+            );
+        }
     }
 
-    close $output_fh or croak "Failed to close output file after writing $!";
-
     return 1;
+}
+
+
+sub _unlink_file_and_croak {
+    my ($self, $filename, $message) = @_;
+
+    unlink $filename or carp "error unlinking $filename $!";
+    croak $message;
 }
 
 
@@ -166,7 +183,7 @@ sub _open_output_filehandle {
         sysopen(my $fh, $args{file}, O_RDWR|O_CREAT, 0600)
             or croak "couldn't open file $args{file} for writing $!";
 
-        return $fh;
+        return ($fh, $args{file});
     }
 
     my %file_options = (UNLINK => 0);
@@ -181,7 +198,7 @@ sub _open_output_filehandle {
     my $fh = File::Temp->new(%file_options)
         or croak "could not create temp file: $@, $!";
 
-    return $fh;
+    return ($fh, $fh->filename);
 }
 
 
@@ -402,7 +419,7 @@ Creates a database backup file.
 After calling this method, STDERR output from the external pg_dump
 utility is available as property $db->stderr.
 
-Croaks on error.
+Unlinks the output file and croaks on error.
 
 Returns the full path of the file containining the backup.
 
@@ -437,7 +454,7 @@ sub backup {
     $self->{stdout} = undef;
 
     local $ENV{PGPASSWORD} = $self->password if defined $self->password;
-    my $output_fh = $self->_open_output_filehandle(%args);
+    my ($output_fh, $output_filename) = $self->_open_output_filehandle(%args);
 
     my @command = ('pg_dump');
     defined $self->username and push(@command, '-U', $self->username);
@@ -448,10 +465,11 @@ sub backup {
 
     $self->_run_command_to_file(
         $output_fh,
+        $output_filename,
         @command
     );
 
-    return $args{file} // $output_fh->filename;
+    return $output_filename;
 }
 
 
@@ -462,7 +480,7 @@ objects, such as users and tablespaces.  It uses pg_dumpall to do this.
 
 Being a plain text file, it can be restored using the run_file method.
 
-Croaks on error.
+Unlinks the output file and croaks on error.
 
 Returns the full path of the file containining the backup.
 
@@ -493,7 +511,7 @@ sub backup_globals {
     $self->{stdout} = undef;
 
     local $ENV{PGPASSWORD} = $self->password if defined $self->password;
-    my $output_fh = $self->_open_output_filehandle(%args);
+    my ($output_fh, $output_filename) = $self->_open_output_filehandle(%args);
 
     my @command = ('pg_dumpall', '-g');
     defined $self->username and push(@command, '-U', $self->username);
@@ -502,10 +520,11 @@ sub backup_globals {
 
     $self->_run_command_to_file(
         $output_fh,
+        $output_filename,
         @command
     );
 
-    return $args{file} // $output_fh->filename;
+    return $output_filename;
 }
 
 
