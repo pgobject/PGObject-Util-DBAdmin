@@ -6,7 +6,7 @@ use PGObject::Util::DBAdmin;
 use Test::Exception;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 20;
+plan tests => 24;
 
 my $db = PGObject::Util::DBAdmin->new(
    username => 'postgres'        ,
@@ -43,6 +43,18 @@ cmp_ok(length $db->stderr, '>', 0, 'after run_file, stderr property has length >
 unlink $stdout_log;
 unlink $stderr_log;
 
+
+# Test that restore fails with bad input
+# Note cannot use format=undef of format='c' as these options
+# actually call run_file underneath
+dies_ok{
+    $db->restore(
+        file => 't/data/bad.sql',
+        format => 't',
+    ) 
+} 'restore dies with bad input';
+
+
 lives_ok { $db->drop } 'drop db first time, successful';
 dies_ok { $db->drop } 'dropdb second time, dies';
 
@@ -50,17 +62,32 @@ my $backup_file = File::Temp->new->filename;
 dies_ok { $db->backup(format => 'c', file => $backup_file) } 'cannot back up non-existent db';
 ok(! -e $backup_file, 'output file deleted after backup error');
 
+
+# Test what happens if specified backup file is unwriteable
+my $temp = File::Temp->new;
+$backup_file = $temp->filename;
+chmod 0400, $backup_file;
+dies_ok { $db->backup(format => 'c', file => $backup_file) } 'backup dies if output file is not writeable';
+chmod 0600, $backup_file;
+unlink $backup_file;
+
+
 dies_ok { $db->restore(format => 'c', file => 't/data/backup.sqlc') } 'cannot restore to non-existent db';
 
 
 $db = PGObject::Util::DBAdmin->new(
    username => 'invalid',
    host     => 'localhost',
-   port     => '0',
+   port     => '5432',
+   dbname   => 'pgobject_test_db',
 );
 $backup_file = File::Temp->new->filename;
-dies_ok { $db->backup(format => 'c', file => $backup_file) } 'cannot backup_globals with bad username';
+dies_ok { $db->backup_globals(file => $backup_file) } 'backup_globals dies with bad username';
 ok(! -e $backup_file, 'output file deleted after backup_globals error');
+dies_ok { $db->backup(format => 'c', file => $backup_file) } 'backup dies with bad username';
+ok(! -e $backup_file, 'output file deleted after backup error');
+
+
 
 
 $db = PGObject::Util::DBAdmin->new(
