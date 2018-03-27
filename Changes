@@ -1,6 +1,23 @@
 Revision history for PGObject-Util-DBAdmin
 
 
+0.120.0 2018-03-27
+        Documentation fixes
+        Don't use shell to execute external commands, blocks command injection
+        Trap shell errors running external commands
+        Test exit code after running external commands
+        Don't attempt to parse stderr from external commands for errors
+        External command stdout/stderr available via object property
+        Default to temporary directory provided by File::Temp
+        Respect method parameters if defined (previously only if true)
+        Add further tests, including Perl::Critic
+        Create backup output files with umask 0600
+        Delete incomplete backup files after error
+        Raise exceptions with croak/carp rather than die/warn
+        external psql command now run with `--set=ON_ERROR_STOP=on`
+        external pg_restore command now run with `--exit-on-error`
+        Bump minimum perl version to 5.10
+
 0.110.0 2017-11-21
         Correctly invoke 'pg_dump' (it doesn't recognise a '-d' option)
         Remove tabs from sources
