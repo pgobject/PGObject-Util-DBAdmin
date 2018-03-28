@@ -19,11 +19,11 @@ PGObject
 
 =head1 VERSION
 
-Version 0.100.0
+Version 0.120.0
 
 =cut
 
-our $VERSION = '0.100.0';
+our $VERSION = '0.120.0';
 
 
 =head1 SYNOPSIS
@@ -639,7 +639,7 @@ L<http://search.cpan.org/dist/PGObject-Util-DBAdmin/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2014-2016 Chris Travers.
+Copyright 2014-2018 Chris Travers.
 
 This program is distributed under the (Revised) BSD License:
 L<http://www.opensource.org/licenses/BSD-3-Clause>
