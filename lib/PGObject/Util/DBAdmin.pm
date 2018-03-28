@@ -120,10 +120,6 @@ sub _run_command {
         croak 'error running command';
     }
 
-    for my $err (split /\n/, $self->{stderr}) {
-        croak $err if $err =~ /(ERROR|FATAL)/;
-    }
-
     return 1;
 }
 
@@ -145,15 +141,6 @@ sub _run_command_to_file {
         $output_filename,
         'error running command'
     );
-
-    for my $err (split /\n/, $self->{stderr}) {
-        if($err =~ /(ERROR|FATAL)/) {
-            $self->_unlink_file_and_croak(
-                $output_filename,
-                $err
-            );
-        }
-    }
 
     return 1;
 }
@@ -396,7 +383,7 @@ sub run_file {
     local $ENV{PGPASSWORD} = $self->password if defined $self->password;
 
     # Build command
-    my @command = ('psql', '-f', $args{file});
+    my @command = ('psql', '--set=ON_ERROR_STOP=on', '-f', $args{file});
     defined $self->username and push(@command, '-U', $self->username);
     defined $self->host     and push(@command, '-h', $self->host);
     defined $self->port     and push(@command, '-p', $self->port);
@@ -568,7 +555,7 @@ sub restore {
     local $ENV{PGPASSWORD} = $self->password if defined $self->password;
 
     # Build command options
-    my @command = ('pg_restore', '--verbose');
+    my @command = ('pg_restore', '--verbose', '--exit-on-error');
     defined $self->dbname   and push(@command, '-d', $self->dbname);
     defined $self->username and push(@command, '-U', $self->username);
     defined $self->host     and push(@command, '-h', $self->host);
