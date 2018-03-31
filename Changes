@@ -29,7 +29,7 @@ Revision history for PGObject-Util-DBAdmin
 
 0.10.0  2016-12-17
         Removed MYMETA.* (rt.cpan.org#109062)
-        Correct spelling errors reported by Robert James Clay (jame@rocasa.ru)
+        Correct spelling errors reported by Robert James Clay (jame@rocasa.us)
         Correct copyright years (rt.cpan.org#117202 and #10)
 
 0.09    2016-07-18
