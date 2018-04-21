@@ -34,8 +34,8 @@ WriteMakefile(
          resources => {
              repository => {
                  type => 'git',
-                 url  => 'https://github.com/einhverfr/PGObject-Util-DBAdmin.git',
-                 web  => 'https://github.com/einhverfr/PGObject-Util-DBAdmin',
+                 url  => 'https://github.com/ledgersmb/PGObject-Util-DBAdmin.git',
+                 web  => 'https://github.com/ledgersmb/PGObject-Util-DBAdmin',
              },
          },
     },
