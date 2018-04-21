@@ -412,6 +412,11 @@ If undefined, a file will be created using File::Temp having umask 0600.
 The directory in which to write the backup file. Optional parameter.  Uses
 File::Temp default if not defined.  Ignored if file paramter is given.
 
+=item compress
+
+Optional parameter. Specifies the compression level to use and is passed to
+the underlying pg_dump command. Default is no compression.
+
 =back
 
 =cut
@@ -428,6 +433,7 @@ sub backup {
     defined $self->username and push(@command, '-U', $self->username);
     defined $self->host     and push(@command, '-h', $self->host);
     defined $self->port     and push(@command, '-p', $self->port);
+    defined $args{compress} and push(@command, '-Z', $args{compress});
     defined $args{format}   and push(@command, "-F$args{format}");
     defined $self->dbname   and push(@command, $self->dbname);
 
