@@ -5,11 +5,11 @@ use Test::More;
 use PGObject::Util::DBAdmin;
 use Test::Exception;
 
+plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
 plan tests => 8;
 
 my $output_file = File::Temp->new->filename;
 
-# These tests do not require a working database connection
 my $db = PGObject::Util::DBAdmin->new(
    username => 'postgres'        ,
    host     => 'localhost'       ,
