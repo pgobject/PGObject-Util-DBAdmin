@@ -1,6 +1,9 @@
 Revision history for PGObject-Util-DBAdmin
 
 
+0.130.1 2018-06-05
+        Correct typos in documentation
+
 0.130.0 2018-04-21
         Backups use pg_dump and pg_dumpall `-f` option, not stdout capture
         Document effect of localizing filehandles on output capture
