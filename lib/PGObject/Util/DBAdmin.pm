@@ -410,7 +410,7 @@ If undefined, a file will be created using File::Temp having umask 0600.
 =item tempdir
 
 The directory in which to write the backup file. Optional parameter.  Uses
-File::Temp default if not defined.  Ignored if file paramter is given.
+File::Temp default if not defined.  Ignored if file parameter is given.
 
 =item compress
 
@@ -470,7 +470,7 @@ If undefined, a file will be created using File::Temp having umask 0600.
 =item tempdir
 
 The directory in which to write the backup file. Optional parameter.  Uses
-File::Temp default if not defined.  Ignored if file paramter is given.
+File::Temp default if not defined.  Ignored if file parameter is given.
 
 =back
 
