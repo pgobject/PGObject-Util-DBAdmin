@@ -19,11 +19,11 @@ PGObject
 
 =head1 VERSION
 
-Version 0.130.1
+Version 0.131.0
 
 =cut
 
-our $VERSION = '0.130.1';
+our $VERSION = '0.131.0';
 
 
 =head1 SYNOPSIS
@@ -114,12 +114,46 @@ has stdout => (is => 'ro');
 
 sub _run_command {
     my ($self, %args) = @_;
+    my %env;
     my $exit_code;
 
+    %env = %{$args{env}} if $args{env};
     # Any files created should be accessible only by the current user
     my $original_umask = umask 0077;
 
     ($self->{stdout}, $self->{stderr}, $exit_code) = capture {
+
+        if ($self->username or exists $ENV{PGUSER}) {
+            $env{PGUSER} //= $self->username // $ENV{PGUSER};
+        }
+        if ($self->password or exists $ENV{PGPASSWORD}) {
+            $env{PGPASSWORD} //= $self->password // $ENV{PGPASSWORD};
+        }
+        if ($self->host or exists $ENV{PGHOST}) {
+            $env{PGHOST} //= $self->host // $ENV{PGHOST};
+        }
+        if ($self->port or exists $ENV{PGPORT}) {
+            $env{PGPORT} //= $self->port // $ENV{PGPORT};
+        }
+        if ($self->dbname or exists $ENV{PGDATABASE}) {
+            $env{PGDATABASE} //= $self->dbname // $ENV{PGDATABASE};
+        }
+        if (exists $ENV{PGSERVICE}) {
+            $env{PGSERVICE} //= $ENV{PGSERVICE};
+        }
+        local %ENV = (
+             # Note that we're intentionally *not* passing
+             # PERL5LIB & PERL5OPT into the environment here!
+             # doing so prevents the system settings to be used, which
+             # we *do* want. If we don't, hopefully, that's coded into
+             # the executables themselves.
+             # Before using this whitelisting, coverage tests in LedgerSMB
+             # would break on the bleeding through this caused.
+             HOME => $ENV{HOME},
+             PATH => $ENV{PATH},
+             %env,
+        );
+
         system @{$args{command}};
     };
 
@@ -304,13 +338,8 @@ sub create {
     my $self = shift;
     my %args = @_;
 
-    local $ENV{PGPASSWORD} = $self->password if $self->password;
-
     my @command = ('createdb');
-    defined $self->username and push(@command, '-U', $self->username);
     defined $args{copy_of}  and push(@command, '-T', $args{copy_of});
-    defined $self->host     and push(@command, '-h', $self->host);
-    defined $self->port     and push(@command, '-p', $self->port);
     defined $self->dbname   and push(@command, $self->dbname);
 
     $self->_run_command(command => [@command])
@@ -360,14 +389,8 @@ sub run_file {
     croak 'Must specify file' unless defined $args{file};
     croak 'Specified file does not exist' unless -e $args{file};
 
-    local $ENV{PGPASSWORD} = $self->password if defined $self->password;
-
     # Build command
     my @command = ('psql', '--set=ON_ERROR_STOP=on', '-f', $args{file});
-    defined $self->username and push(@command, '-U', $self->username);
-    defined $self->host     and push(@command, '-h', $self->host);
-    defined $self->port     and push(@command, '-p', $self->port);
-    defined $self->dbname   and push(@command, $self->dbname);
 
     my $result = $self->_run_command(
         command    => [@command],
@@ -426,16 +449,11 @@ sub backup {
     $self->{stderr} = undef;
     $self->{stdout} = undef;
 
-    local $ENV{PGPASSWORD} = $self->password if defined $self->password;
     my $output_filename = $self->_generate_output_filename(%args);
 
     my @command = ('pg_dump', '-f', $output_filename);
-    defined $self->username and push(@command, '-U', $self->username);
-    defined $self->host     and push(@command, '-h', $self->host);
-    defined $self->port     and push(@command, '-p', $self->port);
     defined $args{compress} and push(@command, '-Z', $args{compress});
     defined $args{format}   and push(@command, "-F$args{format}");
-    defined $self->dbname   and push(@command, $self->dbname);
 
     $self->_run_command(command => [@command])
         or $self->_unlink_file_and_croak($output_filename, 'error running pg_dump command');
@@ -485,9 +503,6 @@ sub backup_globals {
     my $output_filename = $self->_generate_output_filename(%args);
 
     my @command = ('pg_dumpall', '-g', '-f', $output_filename);
-    defined $self->username and push(@command, '-U', $self->username);
-    defined $self->host     and push(@command, '-h', $self->host);
-    defined $self->port     and push(@command, '-p', $self->port);
 
     $self->_run_command(command => [@command])
         or $self->_unlink_file_and_croak($output_filename, 'error running pg_dumpall command');
@@ -533,15 +548,10 @@ sub restore {
     return $self->run_file(%args)
            if not defined $args{format} or $args{format} eq 'p';
 
-    local $ENV{PGPASSWORD} = $self->password if defined $self->password;
-
     # Build command options
     my @command = ('pg_restore', '--verbose', '--exit-on-error');
-    defined $self->dbname   and push(@command, '-d', $self->dbname);
-    defined $self->username and push(@command, '-U', $self->username);
-    defined $self->host     and push(@command, '-h', $self->host);
-    defined $self->port     and push(@command, '-p', $self->port);
     defined $args{format}   and push(@command, "-F$args{format}");
+    defined $self->dbname   and push(@command, '-d', $self->dbname);
     push(@command, $args{file});
 
     $self->_run_command(command => [@command])
@@ -563,12 +573,7 @@ sub drop {
 
     croak 'No db name of this object' unless $self->dbname;
 
-    local $ENV{PGPASSWORD} = $self->password if $self->password;
-
     my @command = ('dropdb');
-    defined $self->username and push(@command, '-U', $self->username);
-    defined $self->host     and push(@command, '-h', $self->host);
-    defined $self->port     and push(@command, '-p', $self->port);
     push(@command, $self->dbname);
 
     $self->_run_command(command => [@command])
