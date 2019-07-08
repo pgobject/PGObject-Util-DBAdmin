@@ -4,11 +4,11 @@ use 5.010; # Uses // defined-or operator
 use strict;
 use warnings FATAL => 'all';
 
+use Capture::Tiny 'capture';
 use Carp;
 use DBI;
 use File::Temp;
-use IO::File;
-use Capture::Tiny 'capture';
+
 use Moo;
 use namespace::clean;
 
