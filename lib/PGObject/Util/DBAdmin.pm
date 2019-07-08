@@ -112,6 +112,63 @@ notes in L</"CAPTURING">.
 has stdout => (is => 'ro');
 
 
+our %helpers =
+    (
+     create => [ qw/createdb/ ],
+     run_file => [ qw/psql/ ],
+     backup => [ qw/pg_dump/ ],
+     backup_globals => [ qw/pg_dumpall/ ],
+     restore => [ qw/pg_restore psql/ ],
+     drop => [ qw/dropdb/ ],
+    );
+
+=head1 GLOBAL VARIABLES
+
+
+=head2 %helper_paths
+
+This hash variable contains as its keys the names of the PostgreSQL helper
+executables C<psql>, C<dropdb>, C<pg_dump>, etc. The values contain the
+paths at which the executables to be run are located. The default values
+are the names of the executables only, allowing them to be looked up in
+C<$PATH>.
+
+Modification of the values in this variable are the strict realm of
+I<applications>. Libraries using this library should defer potential
+required modifications to the applications based upon them.
+
+=cut
+
+our %helper_paths =
+    (
+     psql => 'psql',
+     dropdb => 'dropdb',
+     createdb => 'createdb',
+     pg_dump => 'pg_dump',
+     pg_dumpall => 'pg_dumpall',
+     pg_restore => 'pg_restore',
+    );
+
+sub _run_with_env {
+    my %args = @_;
+    my $env = $args{env};
+
+    local %ENV = (
+        # Note that we're intentionally *not* passing
+        # PERL5LIB & PERL5OPT into the environment here!
+        # doing so prevents the system settings to be used, which
+        # we *do* want. If we don't, hopefully, that's coded into
+        # the executables themselves.
+        # Before using this whitelisting, coverage tests in LedgerSMB
+        # would break on the bleeding through this caused.
+        HOME => $ENV{HOME},
+        PATH => $ENV{PATH},
+        %{$env // {}},
+        );
+
+    return system @{$args{command}};
+}
+
 sub _run_command {
     my ($self, %args) = @_;
     my %env;
@@ -141,20 +198,8 @@ sub _run_command {
         if (exists $ENV{PGSERVICE}) {
             $env{PGSERVICE} //= $ENV{PGSERVICE};
         }
-        local %ENV = (
-             # Note that we're intentionally *not* passing
-             # PERL5LIB & PERL5OPT into the environment here!
-             # doing so prevents the system settings to be used, which
-             # we *do* want. If we don't, hopefully, that's coded into
-             # the executables themselves.
-             # Before using this whitelisting, coverage tests in LedgerSMB
-             # would break on the bleeding through this caused.
-             HOME => $ENV{HOME},
-             PATH => $ENV{PATH},
-             %env,
-        );
 
-        system @{$args{command}};
+        _run_with_env(%args, env => \%env);
     };
 
     if(defined ($args{errlog} // $args{stdout_log})) {
@@ -239,6 +284,52 @@ sub _append_to_file {
 =head2 new
 
 Creates a new db admin object for manipulating databases.
+
+=head2 verify_helpers( [ helpers => [...]], [operations => [...]])
+
+Verifies ability to execute (external) helper applications by
+method name (through the C<operations> argument) or by external helper
+name (through the C<helpers> argument). Returns a hash ref with each
+key being the name of a helper application (see C<helpers> below) with
+the values being a boolean indicating whether or not the helper can be
+successfully executed.
+
+Valid values in the array referenced by the C<operations> parameter are
+C<create>, C<run_file>, C<backup>, C<backup_globals>, C<restore> and
+C<drop>; the methods this module implements with the help of external
+helper programs. (Other values may be passed, but unsupported values
+aren't included in the return value.)
+
+Valid values in the array referenced by the C<helpers> parameter are the
+names of the PostgreSQL helper programs C<createdb>, C<dropdb>, C<pg_dump>,
+C<pg_dumpall>, C<pg_restore> and C<psql>. (Other values may be passed, but
+unsupported values will not be included in the return value.)
+
+When no arguments are passed, all helpers will be tested.
+
+Note: C<verify_helpers> is a class method, meaning it wants to be called
+as C<PGObject::Util::DBAdmin->verify_helpers()>.
+
+=cut
+
+
+sub verify_helpers {
+    my ($class, %args) = @_;
+
+    my @helpers = (
+        @{$args{helpers} // []},
+        map { @{$helpers{$_} // []} } @{$args{operations} // []}
+        );
+    if (not @helpers) {
+        @helpers = keys %helper_paths;
+    }
+    return {
+        map {
+            $_ => not _run_with_env(command => [ $helper_paths{$_} , '--help' ])
+        } @helpers
+    };
+}
+
 
 =head2 export
 
@@ -338,7 +429,7 @@ sub create {
     my $self = shift;
     my %args = @_;
 
-    my @command = ('createdb');
+    my @command = ($helper_paths{createdb});
     defined $args{copy_of}  and push(@command, '-T', $args{copy_of});
     defined $self->dbname   and push(@command, $self->dbname);
 
@@ -390,7 +481,8 @@ sub run_file {
     croak 'Specified file does not exist' unless -e $args{file};
 
     # Build command
-    my @command = ('psql', '--set=ON_ERROR_STOP=on', '-f', $args{file});
+    my @command =
+        ($helper_paths{psql}, '--set=ON_ERROR_STOP=on', '-f', $args{file});
 
     my $result = $self->_run_command(
         command    => [@command],
@@ -451,12 +543,13 @@ sub backup {
 
     my $output_filename = $self->_generate_output_filename(%args);
 
-    my @command = ('pg_dump', '-f', $output_filename);
+    my @command = ($helper_paths{pg_dump}, '-f', $output_filename);
     defined $args{compress} and push(@command, '-Z', $args{compress});
     defined $args{format}   and push(@command, "-F$args{format}");
 
     $self->_run_command(command => [@command])
-        or $self->_unlink_file_and_croak($output_filename, 'error running pg_dump command');
+        or $self->_unlink_file_and_croak($output_filename,
+                                         'error running pg_dump command');
 
     return $output_filename;
 }
@@ -502,10 +595,11 @@ sub backup_globals {
     local $ENV{PGPASSWORD} = $self->password if defined $self->password;
     my $output_filename = $self->_generate_output_filename(%args);
 
-    my @command = ('pg_dumpall', '-g', '-f', $output_filename);
+    my @command = ($helper_paths{pg_dumpall}, '-g', '-f', $output_filename);
 
     $self->_run_command(command => [@command])
-        or $self->_unlink_file_and_croak($output_filename, 'error running pg_dumpall command');
+        or $self->_unlink_file_and_croak($output_filename,
+                                         'error running pg_dumpall command');
 
     return $output_filename;
 }
@@ -549,7 +643,7 @@ sub restore {
            if not defined $args{format} or $args{format} eq 'p';
 
     # Build command options
-    my @command = ('pg_restore', '--verbose', '--exit-on-error');
+    my @command = ($helper_paths{pg_restore}, '--verbose', '--exit-on-error');
     defined $args{format}   and push(@command, "-F$args{format}");
     defined $self->dbname   and push(@command, '-d', $self->dbname);
     push(@command, $args{file});
@@ -573,7 +667,7 @@ sub drop {
 
     croak 'No db name of this object' unless $self->dbname;
 
-    my @command = ('dropdb');
+    my @command = ($helper_paths{dropdb});
     push(@command, $self->dbname);
 
     $self->_run_command(command => [@command])
