@@ -19,11 +19,11 @@ PGObject
 
 =head1 VERSION
 
-version 1.0.0
+version 1.0.1
 
 =cut
 
-our $VERSION = '1.0.0';
+our $VERSION = '1.0.1';
 
 
 =head1 SYNOPSIS
