@@ -380,7 +380,7 @@ sub connect {
     return $dbh;
 }
 
-=head2 server_version
+=head2 server_version([$dbname])
 
 Returns a version string (like 9.1.4) for PostgreSQL. Croaks on error.
 
@@ -388,8 +388,9 @@ Returns a version string (like 9.1.4) for PostgreSQL. Croaks on error.
 
 sub server_version {
     my $self = shift @_;
+    my $dbname = (shift @_) || 'template1';
     my $version =
-           __PACKAGE__->new($self->export, (dbname => 'template1')
+           __PACKAGE__->new($self->export, (dbname => $dbname)
                            )->connect->selectrow_array('SELECT version()');
     my ($retval) = $version =~ /(\d+\.\d+\.\d+)/
         or croak 'failed to extract version string';
@@ -397,7 +398,7 @@ sub server_version {
 }
 
 
-=head2 list_dbs
+=head2 list_dbs([$dbname])
 
 Returns a list of db names.
 
@@ -405,9 +406,10 @@ Returns a list of db names.
 
 sub list_dbs {
     my $self = shift;
+    my $dbname = (shift @_) || 'template1';
 
     return map { $_->[0] }
-           @{ __PACKAGE__->new($self->export, (dbname => 'template1')
+           @{ __PACKAGE__->new($self->export, (dbname => $dbname)
            )->connect->selectall_arrayref(
                  'SELECT datname from pg_database order by datname'
            ) };
