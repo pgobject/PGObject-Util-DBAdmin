@@ -19,11 +19,11 @@ PGObject
 
 =head1 VERSION
 
-version 1.2.0
+version 1.2.1
 
 =cut
 
-our $VERSION = '1.2.0';
+our $VERSION = '1.2.1';
 
 
 =head1 SYNOPSIS
@@ -269,7 +269,7 @@ sub _run_command {
     my $exit_code;
     my %env = (
         # lowest priority: existing environment variables
-        (map { $ENV{$_} ? $ENV{$_}  : () }
+        (map { $ENV{$_} ? ($_ => $ENV{$_})  : () }
          qw(PGUSER PGPASSWORD PGHOST PGPORT PGDATABASE PGSERVICE)),
         # overruled by middle priority: object connection parameters
         _connect_data_env($self->connect_data),
