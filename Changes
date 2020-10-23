@@ -1,5 +1,9 @@
 Revision history for PGObject-Util-DBAdmin
 
+1.2.3   2020-10-24
+      * Restore pre-1.2.0 compatibility by allowing a reference
+        to be passed into the constructor/BUILDARGS
+
 1.2.2   2020-10-23
       * Fall back to dbname in 'connect_data' init_arg when
         no explicit 'dbname' init_arg is supplied.

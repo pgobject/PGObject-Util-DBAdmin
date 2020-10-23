@@ -19,11 +19,11 @@ PGObject
 
 =head1 VERSION
 
-version 1.2.2
+version 1.2.3
 
 =cut
 
-our $VERSION = '1.2.2';
+our $VERSION = '1.2.3';
 
 
 =head1 SYNOPSIS
@@ -400,7 +400,10 @@ as C<PGObject::Util::DBAdmin->verify_helpers()>.
 =cut
 
 around 'BUILDARGS' => sub {
-    my ($orig, $class, %args) = @_;
+    my ($orig, $class, @args) = @_;
+
+    ## 1.1.0 compatibility code (allow a reference to be passed in)
+    my %args = (@args == 1 and ref $args[0]) ? (%{$args[0]}) : (@args);
 
     # deprecated field support code block
     if (exists $args{connect_data}) {
