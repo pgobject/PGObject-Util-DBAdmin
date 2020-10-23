@@ -19,11 +19,11 @@ PGObject
 
 =head1 VERSION
 
-version 1.2.1
+version 1.2.2
 
 =cut
 
-our $VERSION = '1.2.1';
+our $VERSION = '1.2.2';
 
 
 =head1 SYNOPSIS
@@ -411,7 +411,7 @@ around 'BUILDARGS' => sub {
         # Don't overwrite connect_data, because it may be used elsewhere...
         $args{connect_data} = {
             %{$args{connect_data}},
-            dbname => $args{dbname}
+            dbname => ($args{dbname} // $args{connect_data}->{dbname})
         };
 
         # Now for legacy purposes hack the connection parameters into
