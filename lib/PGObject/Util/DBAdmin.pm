@@ -634,7 +634,7 @@ sub run_file {
         command    => [@command],
         errlog     => $args{errlog},
         stdout_log => $args{stdout_log},
-        error      => 'error running command');
+        error      => "error running file '$args{file}'");
 
     return $result;
 }
@@ -796,7 +796,7 @@ sub restore {
     push(@command, $args{file});
 
     $self->_run_command(command => [@command],
-                        error   => 'error running command');
+                        error   => "error restoring from $args{file}");
 
     return 1;
 }
@@ -818,7 +818,7 @@ sub drop {
     push(@command, $self->connect_data->{dbname});
 
     $self->_run_command(command => [@command],
-                        error   => 'error running command');
+                        error   => 'error dropping database');
 
     return 1;
 }
