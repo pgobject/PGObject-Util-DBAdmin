@@ -291,16 +291,24 @@ sub _run_command {
     # Reset original umask
     umask $original_umask;
 
-    # Return true if system command is successful
-    return ($exit_code == 0);
-}
-
-
-sub _unlink_file_and_croak {
-    my ($self, $filename, $message) = @_;
-
-    unlink $filename or carp "error unlinking $filename $!";
-    croak $message;
+    if ($exit_code != 0) {
+        for my $filename (@{$args{unlink}}) {
+            unlink $filename or carp "error unlinking '$filename': $!";
+        }
+        my $command = join( ' ', map { "'$_'" } @{$args{command}} );
+        my $err;
+        if ($? == -1) {
+            $err = "$!";
+        }
+        elsif ($? & 127) {
+            $err = sprintf('died with signal %d', ($? & 127));
+        }
+        else {
+            $err = sprintf('exited with code %d', ($? >> 8));
+        }
+        croak "$args{error}; (command: $command): $err";
+    }
+    return 1;
 }
 
 
@@ -571,8 +579,8 @@ sub create {
     # No need to pass the database name PGDATABASE will be set
     #  if a 'dbname' connection parameter was provided
 
-    $self->_run_command(command => [@command])
-        or croak 'error running command';
+    $self->_run_command(command => [@command],
+                        error   => 'error creating database');
 
     return 1;
 }
@@ -626,7 +634,7 @@ sub run_file {
         command    => [@command],
         errlog     => $args{errlog},
         stdout_log => $args{stdout_log},
-    ) or croak 'error running command';
+        error      => 'error running command');
 
     return $result;
 }
@@ -685,9 +693,9 @@ sub backup {
     defined $args{compress} and push(@command, '-Z', $args{compress});
     defined $args{format}   and push(@command, "-F$args{format}");
 
-    $self->_run_command(command => [@command])
-        or $self->_unlink_file_and_croak($output_filename,
-                                         'error running pg_dump command');
+    $self->_run_command(command => [@command],
+                        unlink  => [$output_filename],
+                        error   => 'error running pg_dump command');
 
     return $output_filename;
 }
@@ -735,9 +743,9 @@ sub backup_globals {
 
     my @command = ($helper_paths{pg_dumpall}, '-g', '-f', $output_filename);
 
-    $self->_run_command(command => [@command])
-        or $self->_unlink_file_and_croak($output_filename,
-                                         'error running pg_dumpall command');
+    $self->_run_command(command => [@command],
+                        unlink  => [$output_filename],
+                        error   => 'error running pg_dumpall command');
 
     return $output_filename;
 }
@@ -787,8 +795,8 @@ sub restore {
         push(@command, '-d', $self->connect_data->{dbname});
     push(@command, $args{file});
 
-    $self->_run_command(command => [@command])
-        or croak 'error running command';
+    $self->_run_command(command => [@command],
+                        error   => 'error running command');
 
     return 1;
 }
@@ -809,8 +817,8 @@ sub drop {
     my @command = ($helper_paths{dropdb});
     push(@command, $self->connect_data->{dbname});
 
-    $self->_run_command(command => [@command])
-        or croak 'error running command';
+    $self->_run_command(command => [@command],
+                        error   => 'error running command');
 
     return 1;
 }
