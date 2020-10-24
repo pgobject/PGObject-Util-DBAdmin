@@ -8,6 +8,7 @@ use Capture::Tiny 'capture';
 use Carp;
 use DBI;
 use File::Temp;
+use Scope::Guard qw(guard);
 
 use Moo;
 use namespace::clean;
@@ -279,17 +280,16 @@ sub _run_command {
 
     # Any files created should be accessible only by the current user
     my $original_umask = umask 0077;
+    {
+        my $guard = guard { umask $original_umask; };
 
-    ($self->{stdout}, $self->{stderr}, $exit_code) = capture {
-        _run_with_env(%args, env => \%env);
-    };
-
-    if(defined ($args{errlog} // $args{stdout_log})) {
-        $self->_write_log_files(%args);
+        ($self->{stdout}, $self->{stderr}, $exit_code) = capture {
+            _run_with_env(%args, env => \%env);
+        };
+        if(defined ($args{errlog} // $args{stdout_log})) {
+            $self->_write_log_files(%args);
+        }
     }
-
-    # Reset original umask
-    umask $original_umask;
 
     if ($exit_code != 0) {
         for my $filename (@{$args{unlink}}) {
