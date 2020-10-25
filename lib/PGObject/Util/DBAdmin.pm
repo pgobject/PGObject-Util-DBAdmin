@@ -8,6 +8,7 @@ use Capture::Tiny 'capture';
 use Carp;
 use DBI;
 use File::Temp;
+use Log::Any;
 use Scope::Guard qw(guard);
 
 use Moo;
@@ -207,6 +208,23 @@ notes in L</"CAPTURING">.
 
 has stdout => (is => 'ro');
 
+=head2 logger
+
+Provides a reference to the logger associated with the current instance. The
+logger uses C<ref $self> as its category, eliminating the need to create
+new loggers when deriving from this class.
+
+If you want to override the logger-instantiation behaviour, please implement
+the C<_build_logger> builder method in your derived class.
+
+=cut
+
+has logger => (is => 'ro', lazy => 1, builder => '_build_logger');
+
+sub _build_logger {
+    return Log::Any->get_logger(category => ref $_[0]);
+}
+
 
 our %helpers =
     (
@@ -277,6 +295,11 @@ sub _run_command {
         # overruled by highest priority: specified environment
         ($args{env}   ? %{$args{env}} : ()),
         );
+    $self->logger->debugf(
+        sub {
+            return 'Running with environment: '
+                . join(' ', map { qq|$_="$env{$_}"| } keys %env );
+        });
 
     # Any files created should be accessible only by the current user
     my $original_umask = umask 0077;
