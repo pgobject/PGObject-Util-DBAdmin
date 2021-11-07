@@ -633,6 +633,20 @@ Recognized arguments are:
 
 Path to file to be run. This is a mandatory argument.
 
+=item vars
+
+A hash reference containing C<psql>-variables to be passed to the script
+being executed. Running:
+
+   $dbadmin->run_file(file => '/tmp/pg.sql', vars => { schema => 'xyz' });
+
+Is equivalent to starting the file C</tmp/pg.sql> with the command
+
+   \set schema xyz
+
+To undefine a variable, associate the variable name (hash key) with the
+value C<undef>.
+
 =item stdout_log
 
 Provided for legacy compatibility. Optional argument. The full path of
@@ -649,6 +663,7 @@ a file to which STDERR from the external psql utility will be appended.
 
 sub run_file {
     my ($self, %args) = @_;
+    my $vars = $args{vars} // {};
     $self->{stderr} = undef;
     $self->{stdout} = undef;
 
@@ -657,7 +672,11 @@ sub run_file {
 
     # Build command
     my @command =
-        ($helper_paths{psql}, '--set=ON_ERROR_STOP=on', '-f', $args{file});
+        ($helper_paths{psql}, '--set=ON_ERROR_STOP=on',
+         (map { ('-v',
+                 defined $vars->{$_} ? "$_=$vars->{$_}" : $_ }
+          keys %$vars),
+         '-f', $args{file});
 
     my $result = $self->_run_command(
         command    => [@command],
