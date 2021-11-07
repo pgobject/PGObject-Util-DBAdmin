@@ -1,6 +1,6 @@
 Revision history for PGObject-Util-DBAdmin
 
-1.6.0   to-be-released
+1.6.0   2021-11-07
       * Add support for passing variables to 'psql' invocations
       * Sort keys in environment variable settings being logged
       * Add support for the 'pg_isready' tool
