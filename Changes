@@ -1,5 +1,8 @@
 Revision history for PGObject-Util-DBAdmin
 
+1.6.1   2021-11-07
+      * Fix syntax error
+
 1.6.0   2021-11-07
       * Add support for passing variables to 'psql' invocations
       * Sort keys in environment variable settings being logged

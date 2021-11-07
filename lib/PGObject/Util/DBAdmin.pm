@@ -21,11 +21,11 @@ PGObject
 
 =head1 VERSION
 
-version 1.6.0
+version 1.6.1
 
 =cut
 
-our $VERSION = '1.6.0';
+our $VERSION = '1.6.1';
 
 
 =head1 SYNOPSIS
@@ -676,7 +676,7 @@ sub run_file {
     my @command =
         ($helper_paths{psql}, '--set=ON_ERROR_STOP=on',
          (map { ('-v',
-                 defined $vars->{$_} ? "$_=$vars->{$_}" : $_ }
+                 defined $vars->{$_} ? "$_=$vars->{$_}" : $_ ) }
           keys %$vars),
          '-f', $args{file});
 
