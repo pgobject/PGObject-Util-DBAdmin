@@ -234,6 +234,7 @@ our %helpers =
      backup_globals => [ qw/pg_dumpall/ ],
      restore => [ qw/pg_restore psql/ ],
      drop => [ qw/dropdb/ ],
+     is_ready => [ qw/pg_isready/ ],
     );
 
 =head1 GLOBAL VARIABLES
@@ -261,6 +262,7 @@ our %helper_paths =
      pg_dump => 'pg_dump',
      pg_dumpall => 'pg_dumpall',
      pg_restore => 'pg_restore',
+     pg_isready => 'pg_isready',
     );
 
 sub _run_with_env {
@@ -870,6 +872,31 @@ sub drop {
 
     return 1;
 }
+
+
+=head2 is_ready
+
+Drops the database.  This is not recoverable. Croaks on error, returns
+true on success.
+
+=cut
+
+sub is_ready {
+    my ($self) = @_;
+
+    croak 'No db name of this object' unless $self->dbname;
+
+    my @command = ($helper_paths{pg_isready});
+    push(@command, $self->connect_data->{dbname});
+
+    $self->_run_command(command => [@command],
+                        error   => 'error dropping database');
+
+    return 1;
+}
+
+
+
 
 
 =head1 CAPTURING
