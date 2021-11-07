@@ -298,7 +298,7 @@ sub _run_command {
     $self->logger->debugf(
         sub {
             return 'Running with environment: '
-                . join(' ', map { qq|$_="$env{$_}"| } keys %env );
+                . join(' ', map { qq|$_="$env{$_}"| } sort keys %env );
         });
 
     # Any files created should be accessible only by the current user
