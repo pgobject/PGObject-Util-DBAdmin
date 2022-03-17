@@ -10,9 +10,9 @@ plan tests => 24;
 
 my $db = PGObject::Util::DBAdmin->new(
    username => 'postgres'        ,
-   host     => 'localhost'       ,
-   port     => '5432'            ,
    dbname   => 'pgobject_test_db',
+   host     => $ENV{PGHOST} // 'localhost',
+   port     => $ENV{PGPORT} // '5432'
 );
 
 eval { $db->drop };
@@ -30,7 +30,7 @@ dies_ok{
         file => 't/data/bad.sql',
         stdout_log => $stdout_log,
         errlog => $stderr_log,
-    ) 
+    )
 } 'run_file dies with bad sql';
 ok(-f $stdout_log, 'run_file stdout_log file written');
 ok(-f $stderr_log, 'run_file errlog file written');
@@ -51,7 +51,7 @@ dies_ok{
     $db->restore(
         file => 't/data/bad.sql',
         format => 't',
-    ) 
+    )
 } 'restore dies with bad input';
 
 
@@ -77,9 +77,9 @@ dies_ok { $db->restore(format => 'c', file => 't/data/backup.sqlc') } 'cannot re
 
 $db = PGObject::Util::DBAdmin->new(
    username => 'invalid',
-   host     => 'localhost',
-   port     => '5432',
    dbname   => 'pgobject_test_db',
+   host     => $ENV{PGHOST} // 'localhost',
+   port     => $ENV{PGPORT} // '5432'
 );
 $backup_file = File::Temp->new->filename;
 dies_ok { $db->backup_globals(file => $backup_file) } 'backup_globals dies with bad username';
@@ -92,7 +92,7 @@ ok(! -e $backup_file, 'output file deleted after backup error');
 
 $db = PGObject::Util::DBAdmin->new(
    username => 'postgres'        ,
-   host     => 'localhost'       ,
+   host     => $ENV{PGHOST} // 'localhost',
    port     => '2'            ,
    dbname   => 'pgobject_test_db',
 );
