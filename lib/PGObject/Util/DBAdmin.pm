@@ -562,7 +562,7 @@ sub server_version {
 }
 
 
-=head2 list_dbs([$dbname])
+=head2 list_dbs([$dbname],[$excludes])
 
 Returns a list of db names.
 
@@ -570,18 +570,54 @@ When a database name is specified, uses that database to connect to,
 using the credentials specified in the instance.
 
 If no database name is specified, 'template1' is used.
+If an array of excluded databases is provided, it is used to limit the list
 
 =cut
 
 sub list_dbs {
     my $self = shift;
-    my $dbname = (shift @_) || 'template1';
+    my $dbname = shift || 'template1';
+    my @excludes = @_;
 
     return map { $_->[0] }
-           @{ __PACKAGE__->new($self->export, (dbname => $dbname)
-           )->connect->selectall_arrayref(
-                 'SELECT datname from pg_database order by datname'
-           ) };
+           @{ __PACKAGE__->new($self->export, (dbname => $dbname))
+                              ->connect->selectall_arrayref(
+                                  'SELECT datname from pg_database
+                                   WHERE datallowconn
+                                   AND datname NOT IN (?)
+                                   ORDER BY datname',
+                                  {},\@excludes)
+           };
+}
+
+=head2 list_dbs_this_user($user,[$dbname],[$excludes])
+
+Returns a list of db names.
+
+When a database name is specified, uses that database to connect to,
+using the credentials specified in the instance.
+
+If no database name is specified, 'template1' is used.
+If an array of excluded databases is provided, it is used to limit the list
+
+=cut
+
+sub list_dbs_this_user {
+    my $self = shift;
+    my $user = shift;
+    my $dbname = shift || 'template1';
+    my @excludes = @_;
+
+    return map { $_->[0] }
+           @{ __PACKAGE__->new($self->export, (dbname => $dbname))
+                              ->connect->selectall_arrayref(
+                                  "SELECT datname from pg_database
+                                   WHERE datdba=(SELECT usesysid FROM pg_user WHERE usename='$user')
+                                   AND  datallowconn
+                                   AND datname NOT IN (?)
+                                   ORDER BY datname",
+                                  {},\@excludes)
+           };
 }
 
 =head2 create

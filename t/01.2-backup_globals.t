@@ -20,8 +20,8 @@ ok($db = PGObject::Util::DBAdmin->new(
      username => 'postgres',
      password => undef,
      dbname   => 'pgobject_test_db',
-     host     => 'localhost',
-     port     => '5432'
+     host     => $ENV{PGHOST} // 'localhost',
+     port     => $ENV{PGPORT} // '5432'
 ), 'Created db admin object');
 
 # Drop db if exists

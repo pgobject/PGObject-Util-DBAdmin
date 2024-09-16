@@ -7,7 +7,7 @@ use PGObject::Util::DBAdmin;
 use File::Temp;
 
 plan skip_all => 'DB_TESTING not set' unless $ENV{DB_TESTING};
-plan tests => 75;
+plan tests => 78;
 
 # Constructor
 
@@ -29,6 +29,9 @@ eval { $db->drop };
 my @dblist;
 ok(@dblist = $db->list_dbs, 'Got a db list');
 ok (!grep {$_ eq 'pgobject_test_db'} @dblist, 'DB list does not contain pgobject_test_db');
+ok(@dblist = $db->list_dbs('postgres',qw/template0 template1/), 'Got a db filtered list');
+ok(@dblist = $db->list_dbs_this_user('postgres'), 'Got a db list for postgres user');
+ok(0 == (@dblist = $db->list_dbs_this_user('unknown')), 'Got no db list for unknown user');
 
 # Create db
 $db->create;
@@ -43,7 +46,7 @@ my $stderr_log = File::Temp->new->filename;
 ok($db->run_file(
     file => 't/data/schema.sql',
     stdout_log => $stdout_log,
-    errlog => $stderr_log, 
+    errlog => $stderr_log,
 ), 'Loaded schema');
 ok(-f $stdout_log, 'run_file stdout_log file written');
 ok(-f $stderr_log, 'run_file errlog file written');
@@ -89,7 +92,7 @@ foreach my $format ((undef, 'p', 'c')) {
     cmp_ok(-s $backup, '>', 0, "backup format $display_format output file has size > 0");
 
     ok($db->drop, "dropped db, format $display_format");
-    ok (!(grep{$_ eq 'pgobject_test_db'} @dblist), 
+    ok (!(grep{$_ eq 'pgobject_test_db'} @dblist),
            'DB list does not contain pgobject_test_db');
 
     dies_ok {
